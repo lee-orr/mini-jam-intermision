@@ -10,7 +10,7 @@
         },
         {
             "label": "run",
-            "args": ["watch", "-x", "run"],
+            "args": ["watch", "-x", "run", "--features",  "dev"],
             "command": "cargo",
         },
         {
