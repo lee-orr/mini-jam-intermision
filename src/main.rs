@@ -5,8 +5,10 @@
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
 
 mod game_state;
+mod assets;
 
 use bevy::prelude::*;
+use bevy_asset_loader::prelude::{LoadingStateAppExt, LoadingState};
 use game_state::AppState;
 
 fn main() {
@@ -16,14 +18,15 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_state(AppState::Loading)
-        .add_startup_system(setup)
+        .add_loading_state(LoadingState::new(AppState::Loading).continue_to_state(AppState::MainMenu).with_collection::<assets::Assets>())
+        .add_system_set(SystemSet::on_enter(AppState::MainMenu).with_system(setup))
         .run();
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup(mut commands: Commands, asset_server: Res<assets::Assets>) {
     commands.spawn(Camera2dBundle::default());
     commands.spawn(SpriteBundle {
-        texture: asset_server.load("icon.png"),
+        texture: asset_server.icon.clone(),
         ..Default::default()
     });
 }

@@ -10,6 +10,7 @@ dev = ["bevy/dynamic"]
 [dependencies]
 bevy = "0.9"
 console_error_panic_hook = "0.1"
+bevy_asset_loader = "0.14"
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]
