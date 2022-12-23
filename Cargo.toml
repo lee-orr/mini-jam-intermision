@@ -11,6 +11,11 @@ dev = ["bevy/dynamic"]
 bevy = "0.9"
 console_error_panic_hook = "0.1"
 bevy_asset_loader = "0.14"
+bevy_common_assets = { version = "0.4", features= [ "json"]}
+serde = "*"
+serde_json = "*"
+tracery = { version = "0.2", features = ["tracery_json"] }
+bevy_turborand = { version = "*", features = ["rand"] }
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]
