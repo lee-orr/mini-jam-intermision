@@ -1,0 +1,21 @@
+{
+  "VsCodeTaskButtons.tasks": [
+    {
+      "label": "run",
+      "task": "run"
+    },
+    {
+      "label": "format",
+      "task": "fmt + clippy"
+    },
+    {
+      "label": "test",
+      "task": "test"
+    },
+    {
+      "label": "wasm",
+      "task": "run wasm"
+    }
+],
+"VsCodeTaskButtons.showCounter": false
+}
