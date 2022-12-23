@@ -1,8 +1,9 @@
 [package]
-name = "bevy_github_ci_template"
+name = "mini-jam-intermission"
 version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
 bevy = "0.9"
+console_error_panic_hook = "0.1"

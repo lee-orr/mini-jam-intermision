@@ -1,0 +1,27 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "test",
+            "args": ["test"],
+            "command": "cargo",
+        },
+        {
+            "label": "run",
+            "args": ["watch", "-x", "run"],
+            "command": "cargo",
+        },
+        {
+            "label": "fmt + clippy",
+            "type": "shell",
+            "command": "./format.sh"
+        },
+        {
+            "label": "run wasm",
+            "args": ["run", "--target=wasm32-unknown-unknown"],
+            "command": "cargo",
+        }
+    ]
+}
