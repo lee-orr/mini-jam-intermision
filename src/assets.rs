@@ -5,6 +5,6 @@ use bevy_asset_loader::prelude::*;
 pub struct Assets {
     #[asset(path = "icon.png")]
     pub icon: Handle<Image>,
-    #[asset(path="Xolonium-Regular.ttf")]
+    #[asset(path = "Xolonium-Regular.ttf")]
     pub font: Handle<Font>,
 }

@@ -40,27 +40,23 @@ fn setup(mut commands: Commands) {
 }
 
 fn display_menu(mut commands: Commands, assets: Res<assets::Assets>) {
-    UiRoot::spawn(&mut commands, |mut parent| {
-            parent.spawn(main_text("Intermission", 100.0, &assets));
-            MenuButton::Primary.spawn("start", "Start", &mut parent, &assets);
-        });
+    UiRoot::spawn(&mut commands, |parent| {
+        parent.spawn(main_text("Intermission", 100.0, &assets));
+        MenuButton::Primary.spawn("start", "Start", parent, &assets);
+    });
 }
 
 fn display_in_game(mut commands: Commands, assets: Res<assets::Assets>) {
-    UiRoot::spawn(&mut commands, |mut parent| {
-            parent.spawn(main_text("In Game!", 100.0, &assets));
-        });
+    UiRoot::spawn(&mut commands, |parent| {
+        parent.spawn(main_text("In Game!", 100.0, &assets));
+    });
 }
 
-fn check_click(mut app_state: ResMut<State<AppState>>,mut clicked: EventReader<ButtonClickEvent>) {
+fn check_click(mut app_state: ResMut<State<AppState>>, mut clicked: EventReader<ButtonClickEvent>) {
     for click in clicked.iter() {
-        match click {
-            ButtonClickEvent(val) => {
-                if val == "start" {
-                    app_state.set(AppState::InGame);
-                }
-            }
-            _ => (),
+        let ButtonClickEvent(val) = click;
+        if val == "start" {
+            let _ = app_state.set(AppState::InGame);
         }
     }
 }
