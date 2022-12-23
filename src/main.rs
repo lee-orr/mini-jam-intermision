@@ -11,10 +11,7 @@ mod ui;
 
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::{LoadingState, LoadingStateAppExt};
-use bevy_turborand::{
-    rng::{RandBorrowed, Rng},
-    RngPlugin,
-};
+use bevy_turborand::{rng::Rng, RngPlugin};
 use game_state::AppState;
 use generated_story::{StoryGenerator, StoryGeneratorPlugin};
 use ui::*;

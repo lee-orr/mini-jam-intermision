@@ -1,6 +1,6 @@
 use bevy::{prelude::Plugin, reflect::TypeUuid, utils::HashMap};
 use bevy_common_assets::json::JsonAssetPlugin;
-use bevy_turborand::rng::{Rng, RandBorrowed};
+use bevy_turborand::rng::{RandBorrowed, Rng};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, TypeUuid)]
@@ -11,32 +11,17 @@ pub struct StoryGenerator {
 }
 
 impl StoryGenerator {
-    pub fn generate(&self, rng: &mut Rng) -> String{
+    pub fn generate(&self, rng: &mut Rng) -> String {
         let mut rng = RandBorrowed::from(rng);
-        let text = 
-            if let Ok(mut grammar) = tracery::from_map(self.grammar.iter()) {
-                if let Ok(output) = grammar.execute(&self.default, &mut rng) {
-                    output
-                } else {
-                    "failed".to_string()
-                }
+        let text = if let Ok(mut grammar) = tracery::from_map(self.grammar.iter()) {
+            if let Ok(output) = grammar.execute(&self.default, &mut rng) {
+                output
             } else {
-                "none".to_string()
-            };
-        text
-    }
-    pub fn generate_at(&self, key: &String, rng: &mut Rng) -> String{
-        let mut rng = RandBorrowed::from(rng);
-        let text = 
-            if let Ok(mut grammar) = tracery::from_map(self.grammar.iter()) {
-                if let Ok(output) = grammar.execute(key, &mut rng) {
-                    output
-                } else {
-                    "failed".to_string()
-                }
-            } else {
-                "none".to_string()
-            };
+                "failed".to_string()
+            }
+        } else {
+            "none".to_string()
+        };
         text
     }
 }
