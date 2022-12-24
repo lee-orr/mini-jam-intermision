@@ -5,7 +5,12 @@ use bevy_egui::{
 };
 use bevy_turborand::RngComponent;
 
-use crate::{assets, game_state::AppState, story::{Story, ScenarioState, Goal}, tracery_generator::TraceryGenerator};
+use crate::{
+    assets,
+    game_state::AppState,
+    story::{Goal, Story},
+    tracery_generator::TraceryGenerator,
+};
 
 pub struct OverworldPlugin;
 
@@ -31,7 +36,7 @@ fn setup_overworld(
     }
 }
 
-fn display_overworld(mut egui_context: ResMut<EguiContext>, mut story: Option<ResMut<Story>>) {
+fn display_overworld(mut egui_context: ResMut<EguiContext>, story: Option<ResMut<Story>>) {
     let ctx = egui_context.ctx_mut();
     egui::CentralPanel::default()
         .frame(Frame {
@@ -49,28 +54,16 @@ fn display_overworld(mut egui_context: ResMut<EguiContext>, mut story: Option<Re
                     cross_justify: false,
                 },
                 |ui| {
-                    if let Some(mut story) = story {
+                    if let Some(story) = story {
                         if let Some(scenario) = story.get_current_scenario() {
                             ui.label(RichText::from(&scenario.initial_description).size(30.));
-                            if let Some(goal) = scenario.goals.iter().next() {
+                            if let Some(goal) = scenario.goals.first() {
                                 ui.label(match &goal {
                                     Goal::ReachLocation(t, _, _) => t,
-                                    _ => "What?",
                                 });
                             } else {
                                 ui.label("No goals?");
                             }
-
-                            match scenario.state {
-                                ScenarioState::InProgress => {
-                                    if ui.button("Succeed").clicked() {
-
-                                    } else if ui.button("Fail").clicked() {
-
-                                    }
-                                },
-                                _ => {}
-                            };
                         } else {
                             ui.label("Couldn't load scenario");
                         }

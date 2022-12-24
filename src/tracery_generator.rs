@@ -1,7 +1,7 @@
 use bevy::{prelude::Plugin, reflect::TypeUuid, utils::HashMap};
 use bevy_common_assets::json::JsonAssetPlugin;
 use bevy_common_assets::yaml::YamlAssetPlugin;
-use bevy_turborand::{rng::{RandBorrowed, Rng, RandCompat}, RngComponent, DelegatedRng};
+use bevy_turborand::{DelegatedRng, RngComponent};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeUuid)]
@@ -31,6 +31,6 @@ pub struct TraceryPlugin;
 impl Plugin for TraceryPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_plugin(JsonAssetPlugin::<TraceryGenerator>::new(&["trace"]))
-        .add_plugin(YamlAssetPlugin::<TraceryGenerator>::new(&["trace.yaml"]));
+            .add_plugin(YamlAssetPlugin::<TraceryGenerator>::new(&["trace.yaml"]));
     }
 }

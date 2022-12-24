@@ -1,5 +1,5 @@
 use bevy::prelude::Resource;
-use bevy_turborand::{rng::Rng, RngComponent};
+use bevy_turborand::RngComponent;
 
 use crate::tracery_generator::TraceryGenerator;
 
@@ -22,7 +22,7 @@ pub enum StoryPhase {
     // EarlySuccesses(u8, u8),
     // Fallback(u8, u8),
     // ClimbToTheEnd(u8, u8),
-    FinalConfrontation,
+    //FinalConfrontation,
 }
 
 impl Default for StoryPhase {
@@ -37,14 +37,12 @@ impl StoryPhase {}
 pub struct Scenario {
     pub initial_description: String,
     pub state: ScenarioState,
-    pub goals: Vec<Goal>
+    pub goals: Vec<Goal>,
 }
 
 #[derive(Clone, Debug)]
 pub enum ScenarioState {
     InProgress,
-    Success,
-    Failure
 }
 
 #[derive(Clone, Debug)]
@@ -55,34 +53,41 @@ pub enum Goal {
 impl Goal {
     pub fn parse(string: &str) -> Vec<Self> {
         string
-            .split("|")
+            .split('|')
             .filter_map(|v| {
                 let v = v.trim();
-                let mut split = v.split(":");
+                let mut split = v.split(':');
                 let goal_type = split.next();
                 match goal_type {
                     Some("reach-location") => {
-                        if let (Some(target_location), Some(success), Some(failure)) = (split.next(),split.next(), split.next()) {
-                            Some(Self::ReachLocation(target_location.trim().to_string(), success.trim().to_string(), failure.trim().to_string()))
+                        if let (Some(target_location), Some(success), Some(failure)) =
+                            (split.next(), split.next(), split.next())
+                        {
+                            Some(Self::ReachLocation(
+                                target_location.trim().to_string(),
+                                success.trim().to_string(),
+                                failure.trim().to_string(),
+                            ))
                         } else {
                             None
                         }
                     }
-                    _ => None
+                    _ => None,
                 }
-            }).collect()
+            })
+            .collect()
     }
 }
 
 impl Scenario {
     pub fn parse(string: &str) -> Option<Scenario> {
-        let mut split = string.split("@");
+        let mut split = string.split('@');
         if let (Some(initial_description), Some(goal_data)) = (split.next(), split.next()) {
             let goals = Goal::parse(goal_data);
             Some(Scenario {
                 initial_description: initial_description.trim().to_string(),
                 state: ScenarioState::InProgress,
-                goals
+                goals,
             })
         } else {
             None
