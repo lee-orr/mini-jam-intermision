@@ -6,14 +6,14 @@
 
 mod assets;
 mod game_state;
-mod generated_story;
+mod tracery_generator;
 mod ui;
 
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::{LoadingState, LoadingStateAppExt};
 use bevy_turborand::{rng::Rng, RngPlugin};
 use game_state::AppState;
-use generated_story::{StoryGenerator, StoryGeneratorPlugin};
+use tracery_generator::{TraceryGenerator, TraceryPlugin};
 use ui::*;
 
 fn main() {
@@ -30,7 +30,7 @@ fn main() {
         }))
         .add_plugin(RngPlugin::default())
         .add_plugin(StylePlugin)
-        .add_plugin(StoryGeneratorPlugin)
+        .add_plugin(TraceryPlugin)
         .insert_resource(ClearColor(Color::hex("25215e").unwrap_or_default()))
         .add_state(AppState::Loading)
         .add_loading_state(
@@ -61,7 +61,7 @@ fn display_menu(mut commands: Commands, assets: Res<assets::Assets>) {
 fn display_game(
     mut commands: Commands,
     assets: Res<assets::Assets>,
-    stories: Res<Assets<StoryGenerator>>,
+    stories: Res<Assets<TraceryGenerator>>,
 ) {
     let mut rng = Rng::new();
     let text = if let Some(story) = stories.get(&assets.story) {

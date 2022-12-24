@@ -5,12 +5,12 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, TypeUuid)]
 #[uuid = "ec95bab0-e021-4bd0-9cc1-b37d6b152ca0"]
-pub struct StoryGenerator {
+pub struct TraceryGenerator {
     pub grammar: HashMap<String, Vec<String>>,
     pub default: String,
 }
 
-impl StoryGenerator {
+impl TraceryGenerator {
     pub fn generate(&self, rng: &mut Rng) -> String {
         let mut rng = RandBorrowed::from(rng);
         let text = if let Ok(mut grammar) = tracery::from_map(self.grammar.iter()) {
@@ -26,10 +26,10 @@ impl StoryGenerator {
     }
 }
 
-pub struct StoryGeneratorPlugin;
+pub struct TraceryPlugin;
 
-impl Plugin for StoryGeneratorPlugin {
+impl Plugin for TraceryPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugin(JsonAssetPlugin::<StoryGenerator>::new(&["story"]));
+        app.add_plugin(JsonAssetPlugin::<TraceryGenerator>::new(&["story"]));
     }
 }
