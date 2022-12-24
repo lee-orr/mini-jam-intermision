@@ -16,11 +16,11 @@ pub struct Story {
 #[derive(Clone, Debug, Copy)]
 pub enum StoryPhase {
     Start,
-    RoughAndTumble(u8, u8),
-    EarlySuccesses(u8, u8),
-    Fallback(u8, u8),
-    ClimbToTheEnd(u8, u8),
-    FinalConfrontation,
+    // RoughAndTumble(u8, u8),
+    // EarlySuccesses(u8, u8),
+    // Fallback(u8, u8),
+    // ClimbToTheEnd(u8, u8),
+    // FinalConfrontation,
 }
 
 impl Default for StoryPhase {
@@ -31,22 +31,22 @@ impl Default for StoryPhase {
 
 #[derive(Clone, Debug)]
 pub enum Scenario {
-    InProgress {
-        description: String,
-        goals: Vec<Goal>,
-    },
-    Succeeded {
-        description: String,
-    },
-    Failed {
-        description: String,
-    },
+    // InProgress {
+    //     description: String,
+    //     goals: Vec<Goal>,
+    // },
+    // Succeeded {
+    //     description: String,
+    // },
+    // Failed {
+    //     description: String,
+    // },
 }
 
 #[derive(Clone, Debug)]
 pub enum Goal {
-    ReachLocation,
-    BeatBaddies,
+    // ReachLocation,
+    // BeatBaddies,
 }
 
 impl Story {

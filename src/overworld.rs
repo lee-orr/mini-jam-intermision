@@ -1,13 +1,11 @@
-use bevy::{app::AppExit, prelude::*};
+use bevy::prelude::*;
 use bevy_egui::{
     egui::{Color32, Frame},
     *,
 };
 use bevy_turborand::rng::Rng;
 
-use crate::{
-    assets, game_state::AppState, story::Story, tracery_generator::TraceryGenerator, ui::*,
-};
+use crate::{assets, game_state::AppState, story::Story, tracery_generator::TraceryGenerator};
 
 pub struct OverworldPlugin;
 
@@ -15,7 +13,9 @@ impl Plugin for OverworldPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.init_resource::<OverworldUI>()
             .add_system_set(SystemSet::on_enter(AppState::Overworld).with_system(setup_overworld))
-            .add_system_set(SystemSet::on_update(AppState::Overworld).with_system(display_overworld));
+            .add_system_set(
+                SystemSet::on_update(AppState::Overworld).with_system(display_overworld),
+            );
     }
 }
 
@@ -48,7 +48,7 @@ fn display_overworld(mut egui_context: ResMut<EguiContext>, overworld: Res<Overw
             fill: Color32::TRANSPARENT,
             ..Default::default()
         })
-        .show(&ctx, |ui| {
+        .show(ctx, |ui| {
             ui.with_layout(
                 egui::Layout {
                     main_dir: egui::Direction::TopDown,
@@ -60,9 +60,7 @@ fn display_overworld(mut egui_context: ResMut<EguiContext>, overworld: Res<Overw
                 },
                 |ui| {
                     if let Some(text) = &overworld.main_text {
-                        ui.add(egui::Label::new(
-                            egui::RichText::new(text).size(50.),
-                        ));
+                        ui.add(egui::Label::new(egui::RichText::new(text).size(50.)));
                     }
                 },
             );

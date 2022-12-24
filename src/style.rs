@@ -66,7 +66,6 @@ impl ColorGroup {
 pub struct Colors {
     primary: ColorGroup,
     secondary: ColorGroup,
-    background: ColorGroup,
     info: ColorGroup,
     danger: ColorGroup,
 }
@@ -76,7 +75,6 @@ impl Default for Colors {
         Self {
             primary: ColorGroup::new("004D40", "39796b", "00251a", "ffffff"),
             secondary: ColorGroup::new("fbc02d", "fff263", "c49000", "000000"),
-            background: ColorGroup::new("004D40", "39796b", "00251a", "ffffff"),
             info: ColorGroup::new("64B5F6", "9be7ff", "2286c3", "000000"),
             danger: ColorGroup::new("E64A19", "ff7d47", "ac0800", "ffffff"),
         }

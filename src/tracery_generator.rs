@@ -7,23 +7,9 @@ use serde::{Deserialize, Serialize};
 #[uuid = "ec95bab0-e021-4bd0-9cc1-b37d6b152ca0"]
 pub struct TraceryGenerator {
     pub grammar: HashMap<String, Vec<String>>,
-    pub default: String,
 }
 
 impl TraceryGenerator {
-    pub fn generate(&self, rng: &mut Rng) -> String {
-        let mut rng = RandBorrowed::from(rng);
-        let text = if let Ok(mut grammar) = tracery::from_map(self.grammar.iter()) {
-            if let Ok(output) = grammar.execute(&self.default, &mut rng) {
-                output
-            } else {
-                "failed".to_string()
-            }
-        } else {
-            "none".to_string()
-        };
-        text
-    }
     pub fn generate_from<T: Into<String>>(&self, key: T, rng: &mut Rng) -> String {
         let mut rng = RandBorrowed::from(rng);
         let text = if let Ok(mut grammar) = tracery::from_map(self.grammar.iter()) {
