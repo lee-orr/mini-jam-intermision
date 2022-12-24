@@ -5,6 +5,7 @@
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
 
 mod assets;
+mod board;
 mod game_state;
 mod menu;
 mod overworld;
@@ -12,16 +13,20 @@ mod scene;
 mod story;
 mod style;
 mod tracery_generator;
-mod board;
 
 use bevy::{core_pipeline::clear_color::ClearColorConfig, prelude::*};
 use bevy_asset_loader::prelude::{LoadingState, LoadingStateAppExt};
 use bevy_egui::EguiPlugin;
 use bevy_turborand::RngPlugin;
+use board::BoardPlugin;
 use game_state::AppState;
 use menu::MenuPlugin;
 use overworld::OverworldPlugin;
 use scene::ScenePlugin;
+use smooth_bevy_cameras::{
+    controllers::orbit::{OrbitCameraBundle, OrbitCameraController, OrbitCameraPlugin},
+    LookTransformPlugin,
+};
 use style::StylePlugin;
 use tracery_generator::TraceryPlugin;
 
@@ -29,22 +34,29 @@ fn main() {
     #[cfg(target_arch = "wasm32")]
     console_error_panic_hook::set_once();
 
-    App::new()
-        .add_plugins(DefaultPlugins.set(WindowPlugin {
-            window: WindowDescriptor {
-                fit_canvas_to_parent: true,
-                ..Default::default()
-            },
+    let mut app = App::new();
+    app.add_plugins(DefaultPlugins.set(WindowPlugin {
+        window: WindowDescriptor {
+            fit_canvas_to_parent: true,
             ..Default::default()
-        }))
-        .add_plugin(EguiPlugin)
-        .add_plugin(StylePlugin)
+        },
+        ..Default::default()
+    }))
+    .insert_resource(ClearColor(Color::hex("25215e").unwrap_or_default()))
+    .add_plugin(EguiPlugin)
+    .add_plugin(LookTransformPlugin)
+    .add_plugin(OrbitCameraPlugin::default());
+
+    #[cfg(feature = "dev")]
+    app.add_plugin(WorldInspectorPlugin::new());
+
+    app.add_plugin(StylePlugin)
         .add_plugin(RngPlugin::default())
         .add_plugin(TraceryPlugin)
         .add_plugin(MenuPlugin)
         .add_plugin(OverworldPlugin)
         .add_plugin(ScenePlugin)
-        .insert_resource(ClearColor(Color::hex("25215e").unwrap_or_default()))
+        .add_plugin(BoardPlugin)
         .add_state(AppState::Loading)
         .add_loading_state(
             LoadingState::new(AppState::Loading)
@@ -56,7 +68,18 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn(Camera3dBundle { ..default() });
+    let eye = Vec3::new(0., 10., 0.);
+    let target = Vec3::default();
+    commands
+        .spawn(Camera3dBundle::default())
+        .insert(OrbitCameraBundle::new(
+            OrbitCameraController {
+                enabled: true,
+                ..Default::default()
+            },
+            eye,
+            target,
+        ));
     commands.spawn(Camera2dBundle {
         camera: Camera {
             priority: 1,

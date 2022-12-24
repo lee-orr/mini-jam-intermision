@@ -13,8 +13,7 @@ pub struct ScenePlugin;
 
 impl Plugin for ScenePlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_state(SceneState::None)
+        app.add_state(SceneState::None)
             .add_system_set(SystemSet::on_update(AppState::Scene).with_system(display_scene))
             .add_system_set(SystemSet::on_enter(AppState::Scene).with_system(setup_scene))
             .add_system_set(SystemSet::on_exit(AppState::Scene).with_system(end_scene));

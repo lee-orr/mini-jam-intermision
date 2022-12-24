@@ -245,6 +245,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy-inspector-egui"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cd4c06a380d02588eac43f8a56d2d370614fe6b2e7467041e57b064e93ec7620"
+dependencies = [
+ "bevy",
+ "bevy-inspector-egui-derive",
+ "bevy_egui",
+ "image 0.24.5",
+ "pretty-type-name",
+]
+
+[[package]]
+name = "bevy-inspector-egui-derive"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2c6a0ceb52115321ef304a5a875e975bba5bbf2ceb802e1dfa07221e8bbc8178"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "bevy_animation"
 version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2225,6 +2249,7 @@ name = "mini-jam-intermission"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "bevy-inspector-egui",
  "bevy_asset_loader",
  "bevy_common_assets",
  "bevy_egui",
@@ -2232,6 +2257,7 @@ dependencies = [
  "console_error_panic_hook",
  "serde",
  "serde_json",
+ "smooth-bevy-cameras",
  "tracery",
 ]
 
@@ -2789,6 +2815,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b40af805b3121feab8a3c29f04d8ad262fa8e0561883e7653e024ae4479e6de"
 
 [[package]]
+name = "pretty-type-name"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a8815d101cfb4cb491154896bdab292a395a7ac9ab185a9941a2f5be0135900d"
+
+[[package]]
 name = "proc-macro-crate"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3117,6 +3149,17 @@ version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a507befe795404456341dfab10cef66ead4c041f62b8b11bbb92bffe5d0953e0"
 dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "smooth-bevy-cameras"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f3f5ed8b01ccbe9b560d4f579d76a28f513b816dadf4e6ad7c2ee26e5686b1dc"
+dependencies = [
+ "approx",
+ "bevy",
  "serde",
 ]
 
