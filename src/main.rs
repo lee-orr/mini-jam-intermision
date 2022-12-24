@@ -6,9 +6,11 @@
 
 mod assets;
 mod board;
+mod card;
 mod game_state;
 mod menu;
 mod overworld;
+mod scenario;
 mod scene;
 mod story;
 mod style;
@@ -21,9 +23,11 @@ use bevy_egui::EguiPlugin;
 use bevy_inspector_egui::*;
 use bevy_turborand::RngPlugin;
 use board::BoardPlugin;
+use card::CardPlugin;
 use game_state::AppState;
 use menu::MenuPlugin;
 use overworld::OverworldPlugin;
+use scenario::ScenarioPlugin;
 use scene::ScenePlugin;
 use smooth_bevy_cameras::{
     controllers::orbit::{OrbitCameraBundle, OrbitCameraController, OrbitCameraPlugin},
@@ -47,17 +51,19 @@ fn main() {
     .insert_resource(ClearColor(Color::hex("25215e").unwrap_or_default()))
     .add_plugin(EguiPlugin)
     .add_plugin(LookTransformPlugin)
-    .add_plugin(OrbitCameraPlugin::default());
+    .add_plugin(OrbitCameraPlugin::default())
+    .add_plugin(RngPlugin::default());
 
     #[cfg(feature = "dev")]
     app.add_plugin(WorldInspectorPlugin::new());
 
     app.add_plugin(StylePlugin)
-        .add_plugin(RngPlugin::default())
+        .add_plugin(CardPlugin)
         .add_plugin(TraceryPlugin)
         .add_plugin(MenuPlugin)
         .add_plugin(OverworldPlugin)
         .add_plugin(ScenePlugin)
+        .add_plugin(ScenarioPlugin)
         .add_plugin(BoardPlugin)
         .add_state(AppState::Loading)
         .add_loading_state(
