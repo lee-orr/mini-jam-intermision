@@ -8,9 +8,9 @@ mod assets;
 mod game_state;
 mod menu;
 mod overworld;
+mod story;
 mod tracery_generator;
 mod ui;
-mod story;
 
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::{LoadingState, LoadingStateAppExt};

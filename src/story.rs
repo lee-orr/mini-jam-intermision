@@ -10,7 +10,7 @@ pub struct Story {
     pub bad_faction: String,
     pub evil_lord: String,
     pub phase: StoryPhase,
-    pub scenarios: Vec<Scenario>
+    pub scenarios: Vec<Scenario>,
 }
 
 #[derive(Clone, Debug, Copy)]
@@ -20,7 +20,7 @@ pub enum StoryPhase {
     EarlySuccesses(u8, u8),
     Fallback(u8, u8),
     ClimbToTheEnd(u8, u8),
-    FinalConfrontation
+    FinalConfrontation,
 }
 
 impl Default for StoryPhase {
@@ -31,26 +31,33 @@ impl Default for StoryPhase {
 
 #[derive(Clone, Debug)]
 pub enum Scenario {
-    InProgress { description: String, goals: Vec<Goal> },
-    Succeeded { description: String },
-    Failed { description: String }
+    InProgress {
+        description: String,
+        goals: Vec<Goal>,
+    },
+    Succeeded {
+        description: String,
+    },
+    Failed {
+        description: String,
+    },
 }
 
 #[derive(Clone, Debug)]
 pub enum Goal {
     ReachLocation,
-    BeatBaddies
+    BeatBaddies,
 }
 
 impl Story {
-    pub fn generate(mut rng: &mut Rng, asset: &TraceryGenerator) -> Self {
+    pub fn generate(rng: &mut Rng, asset: &TraceryGenerator) -> Self {
         Self {
             phase: StoryPhase::Start,
             scenarios: vec![],
-            main_character: asset.generate_from("main_character", &mut rng),
-            good_faction: asset.generate_from("good_faction", &mut rng),
-            bad_faction: asset.generate_from("bad_faction", &mut rng),
-            evil_lord: asset.generate_from("evil_lord", &mut rng),
+            main_character: asset.generate_from("main_character", rng),
+            good_faction: asset.generate_from("good_faction", rng),
+            bad_faction: asset.generate_from("bad_faction", rng),
+            evil_lord: asset.generate_from("evil_lord", rng),
         }
     }
 
@@ -58,12 +65,12 @@ impl Story {
         let updated = text.replace("*main_character*", &self.main_character);
         let updated = updated.replace("*good_faction*", &self.good_faction);
         let updated = updated.replace("*bad_faction*", &self.main_character);
-        let updated = updated.replace("*evil_lord*", &self.bad_faction);
-        updated
+
+        updated.replace("*evil_lord*", &self.bad_faction)
     }
 
-    pub fn introduce(&mut self, mut rng: &mut Rng, asset: &TraceryGenerator) -> String {
-        let text = asset.generate_from("intro", &mut rng);
+    pub fn introduce(&mut self, rng: &mut Rng, asset: &TraceryGenerator) -> String {
+        let text = asset.generate_from("intro", rng);
         self.process_text(&text)
     }
 }
