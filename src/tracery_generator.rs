@@ -30,6 +30,6 @@ pub struct TraceryPlugin;
 
 impl Plugin for TraceryPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugin(JsonAssetPlugin::<TraceryGenerator>::new(&["story"]));
+        app.add_plugin(JsonAssetPlugin::<TraceryGenerator>::new(&["trace"]));
     }
 }
