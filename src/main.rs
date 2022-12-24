@@ -29,6 +29,8 @@ use smooth_bevy_cameras::{
 };
 use style::StylePlugin;
 use tracery_generator::TraceryPlugin;
+#[cfg(feature = "dev")]
+use bevy_inspector_egui::*;
 
 fn main() {
     #[cfg(target_arch = "wasm32")]
