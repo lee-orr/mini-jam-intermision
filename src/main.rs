@@ -17,6 +17,8 @@ mod tracery_generator;
 use bevy::{core_pipeline::clear_color::ClearColorConfig, prelude::*};
 use bevy_asset_loader::prelude::{LoadingState, LoadingStateAppExt};
 use bevy_egui::EguiPlugin;
+#[cfg(feature = "dev")]
+use bevy_inspector_egui::*;
 use bevy_turborand::RngPlugin;
 use board::BoardPlugin;
 use game_state::AppState;
@@ -29,8 +31,6 @@ use smooth_bevy_cameras::{
 };
 use style::StylePlugin;
 use tracery_generator::TraceryPlugin;
-#[cfg(feature = "dev")]
-use bevy_inspector_egui::*;
 
 fn main() {
     #[cfg(target_arch = "wasm32")]
@@ -70,13 +70,14 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    let eye = Vec3::new(0., 10., 0.);
+    let eye = Vec3::new(0., 15., 0.);
     let target = Vec3::default();
     commands
         .spawn(Camera3dBundle::default())
         .insert(OrbitCameraBundle::new(
             OrbitCameraController {
                 enabled: true,
+                mouse_translate_sensitivity: Vec2::new(2., 2.),
                 ..Default::default()
             },
             eye,

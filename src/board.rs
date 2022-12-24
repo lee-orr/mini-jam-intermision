@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy_turborand::DelegatedRng;
 use bevy_turborand::GlobalRng;
+use smooth_bevy_cameras::LookTransform;
 
 use crate::{scene::SceneState, story::Story};
 
@@ -9,8 +10,16 @@ pub struct BoardPlugin;
 impl Plugin for BoardPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_startup_system(startup)
-            .add_system_set(SystemSet::on_enter(SceneState::None).with_system(clear_board))
-            .add_system_set(SystemSet::on_enter(SceneState::Setup).with_system(generate_board));
+            .add_system_set(
+                SystemSet::on_enter(SceneState::None)
+                    .with_system(clear_board)
+                    .with_system(reset_camera),
+            )
+            .add_system_set(
+                SystemSet::on_enter(SceneState::Playing)
+                    .with_system(generate_board)
+                    .with_system(set_camera),
+            );
     }
 }
 
@@ -71,6 +80,7 @@ fn generate_board(
     _story: Option<ResMut<Story>>,
     assets: Res<BoardAssets>,
     mut global_rng: ResMut<GlobalRng>,
+    mut scene_state: ResMut<State<SceneState>>,
 ) {
     let width = global_rng.usize(10..=20);
     let height = global_rng.usize(10..=20);
@@ -90,6 +100,9 @@ fn generate_board(
 
     let left = -1. * width as f32 / 2.;
     let top = -1. * height as f32 / 2.;
+
+    let result = scene_state.set(SceneState::Playing);
+    bevy::log::info!("Setting to playing: {:?}", result);
 
     commands
         .spawn((SpatialBundle::default(), Board))
@@ -114,19 +127,19 @@ fn generate_board(
                 .collect::<Vec<usize>>();
 
             for (index, tile) in tiles.iter().enumerate() {
-                let is_occupied = global_rng.chance(0.9);
+                let (material, is_occupied) = if index == start {
+                    (assets.start_point_mat.clone(), true)
+                } else if index == end {
+                    (assets.goal_mat.clone(), true)
+                } else if monsters.contains(&index) {
+                    (assets.tile_mat.clone(), true)
+                } else {
+                    (assets.tile_mat.clone(), global_rng.chance(0.9))
+                };
                 if is_occupied {
                     parent.spawn(PbrBundle {
                         mesh: assets.tile.clone(),
-                        material: {
-                            if index == start {
-                                assets.start_point_mat.clone()
-                            } else if index == end {
-                                assets.goal_mat.clone()
-                            } else {
-                                assets.tile_mat.clone()
-                            }
-                        },
+                        material,
                         transform: Transform::from_xyz(
                             tile.0 as f32 + left,
                             -0.1,
@@ -149,4 +162,26 @@ fn generate_board(
                 }
             }
         });
+}
+
+fn set_camera(mut query: Query<&mut LookTransform>) {
+    let eye = Vec3::new(0., 10., 0.);
+    let target = Vec3::default();
+    bevy::log::info!("Ready to play");
+    for mut item in query.iter_mut() {
+        bevy::log::info!("Setting camera pos");
+        item.eye = eye;
+        item.target = target;
+    }
+}
+
+fn reset_camera(mut query: Query<&mut LookTransform>) {
+    let eye = Vec3::new(0., 15., 0.);
+    let target = Vec3::default();
+    bevy::log::info!("Ready to play");
+    for mut item in query.iter_mut() {
+        bevy::log::info!("Setting camera pos");
+        item.eye = eye;
+        item.target = target;
+    }
 }

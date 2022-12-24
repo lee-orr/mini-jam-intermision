@@ -23,11 +23,11 @@ impl Plugin for ScenePlugin {
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum SceneState {
     None,
-    Setup,
+    Playing,
 }
 
 fn setup_scene(mut scene_state: ResMut<State<SceneState>>) {
-    let _ = scene_state.set(SceneState::Setup);
+    let _ = scene_state.set(SceneState::Playing);
 }
 
 fn end_scene(mut scene_state: ResMut<State<SceneState>>) {
