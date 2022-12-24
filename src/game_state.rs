@@ -2,5 +2,5 @@
 pub enum AppState {
     Loading,
     MainMenu,
-    InGame,
+    Overworld,
 }

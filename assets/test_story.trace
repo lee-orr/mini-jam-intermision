@@ -1,11 +1,41 @@
 {
-    "grammar": {
-	"sentence": ["The #color# #animal# of the #natureNoun# is called #name#"]
-,	"color": ["orange","blue","white","black","grey","purple","indigo","turquoise"]
-,	"animal": ["unicorn","raven","sparrow","scorpion","coyote","eagle","owl","lizard","zebra","duck","kitten"]
-,	"natureNoun": ["ocean","mountain","forest","cloud","river","tree","sky","sea","desert"]
-,	"name": ["Arjun","Yuuma","Darcy","Mia","Chiaki","Izzi","Azra","Lina"]
-
-},
-    "default": "sentence"
+  "grammar": {
+    "main_character": [
+      "Threed",
+      "Eliq",
+      "Vuhlas",
+      "Liharna",
+      "Miz",
+      "Zyth",
+      "Gorozid",
+      "Yoreath",
+      "Miralak",
+      "Aanar"
+    ],
+    "good_faction": [
+      "Caliadons",
+      "Copperni",
+      "Steel-Frames",
+      "Nickel-fronts",
+      "Unorganics"
+    ],
+    "bad_faction": [
+      "Controllers",
+      "Programmers",
+      "Orchestrators",
+      "Directors",
+      "Overlords",
+      "Empire"
+    ],
+    "evil_lord": [
+      "Korgol-Naz",
+      "Moor-Cast",
+      "High Corralor"
+    ],
+    "intro": [
+      "In a far away world, *bad_faction* has been working the *good_faction* to the brink of despair. Today, we find out if *main_character* can overthrow *evil_lord* and help the *good_faction* find freedom at last.",
+      "Everyone knows not to speak badly of *evil_lord* - for the *bad_faction* hear every sound, see every move. Only those in the darkest shadows, fighters for the freedom of *good_faction*, dare speak out. *main_character* - today you begin your journey to save your people."
+    ]
+  },
+  "default": "sentence"
 }

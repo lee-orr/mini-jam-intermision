@@ -6,14 +6,19 @@
 
 mod assets;
 mod game_state;
+mod menu;
+mod overworld;
 mod tracery_generator;
 mod ui;
+mod story;
 
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::{LoadingState, LoadingStateAppExt};
-use bevy_turborand::{rng::Rng, RngPlugin};
+use bevy_turborand::RngPlugin;
 use game_state::AppState;
-use tracery_generator::{TraceryGenerator, TraceryPlugin};
+use menu::MenuPlugin;
+use overworld::OverworldPlugin;
+use tracery_generator::TraceryPlugin;
 use ui::*;
 
 fn main() {
@@ -31,6 +36,8 @@ fn main() {
         .add_plugin(RngPlugin::default())
         .add_plugin(StylePlugin)
         .add_plugin(TraceryPlugin)
+        .add_plugin(MenuPlugin)
+        .add_plugin(OverworldPlugin)
         .insert_resource(ClearColor(Color::hex("25215e").unwrap_or_default()))
         .add_state(AppState::Loading)
         .add_loading_state(
@@ -39,50 +46,9 @@ fn main() {
                 .with_collection::<assets::Assets>(),
         )
         .add_startup_system(setup)
-        .add_system_set(SystemSet::on_enter(AppState::MainMenu).with_system(display_menu))
-        .add_system_set(SystemSet::on_update(AppState::MainMenu).with_system(check_click))
-        .add_system_set(SystemSet::on_enter(AppState::InGame).with_system(display_game))
-        .add_system_set(clear_ui_system_set(AppState::MainMenu))
-        .add_system_set(clear_ui_system_set(AppState::InGame))
         .run();
 }
 
 fn setup(mut commands: Commands) {
     commands.spawn(Camera3dBundle::default());
-}
-
-fn display_menu(mut commands: Commands, assets: Res<assets::Assets>) {
-    UiRoot::spawn(&mut commands, |parent| {
-        parent.spawn(main_text("Intermission", 100.0, &assets));
-        MenuButton::Primary.spawn("start", "Start", parent, &assets);
-    });
-}
-
-fn display_game(
-    mut commands: Commands,
-    assets: Res<assets::Assets>,
-    stories: Res<Assets<TraceryGenerator>>,
-) {
-    let mut rng = Rng::new();
-    let text = if let Some(story) = stories.get(&assets.story) {
-        story.generate(&mut rng)
-    } else {
-        "no story".to_string()
-    };
-    {
-        let text = text;
-        UiRoot::spawn(&mut commands, move |parent| {
-            parent.spawn(main_text("Content:", 100.0, &assets));
-            parent.spawn(main_text(text.clone(), 50.0, &assets));
-        });
-    }
-}
-
-fn check_click(mut app_state: ResMut<State<AppState>>, mut clicked: EventReader<ButtonClickEvent>) {
-    for click in clicked.iter() {
-        let ButtonClickEvent(val) = click;
-        if val == "start" {
-            let _ = app_state.set(AppState::InGame);
-        }
-    }
 }

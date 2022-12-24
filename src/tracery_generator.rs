@@ -24,6 +24,19 @@ impl TraceryGenerator {
         };
         text
     }
+    pub fn generate_from<T: Into<String>>(&self, key: T, rng: &mut Rng) -> String {
+        let mut rng = RandBorrowed::from(rng);
+        let text = if let Ok(mut grammar) = tracery::from_map(self.grammar.iter()) {
+            if let Ok(output) = grammar.execute(&key.into(), &mut rng) {
+                output
+            } else {
+                "failed".to_string()
+            }
+        } else {
+            "none".to_string()
+        };
+        text
+    }
 }
 
 pub struct TraceryPlugin;

@@ -20,7 +20,11 @@ where
             font_size: size,
             color: Color::rgb(0.9, 0.9, 0.9),
         },
-    )
+    ).with_style(Style {
+        max_size: Size::new(Val::Percent(80.), Val::Auto),
+        flex_wrap: FlexWrap::Wrap,
+        ..Default::default()
+    }).with_text_alignment(TextAlignment::CENTER)
 }
 
 #[derive(Clone, Copy, Component)]
@@ -100,6 +104,7 @@ impl UiRoot {
                 NodeBundle {
                     style: Style {
                         size: Size::new(Val::Percent(100.), Val::Percent(100.)),
+                        max_size: Size::new(Val::Percent(100.), Val::Percent(100.)),
                         justify_content: JustifyContent::Center,
                         align_items: AlignItems::Center,
                         flex_direction: FlexDirection::Column,
