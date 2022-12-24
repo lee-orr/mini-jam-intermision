@@ -209,7 +209,7 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
 
-   deploy:
+  deploy:
     needs:
       - release-wasm
     environment:
