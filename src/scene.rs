@@ -13,8 +13,26 @@ pub struct ScenePlugin;
 
 impl Plugin for ScenePlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_update(AppState::Scene).with_system(display_scene));
+        app
+            .add_state(SceneState::None)
+            .add_system_set(SystemSet::on_update(AppState::Scene).with_system(display_scene))
+            .add_system_set(SystemSet::on_enter(AppState::Scene).with_system(setup_scene))
+            .add_system_set(SystemSet::on_exit(AppState::Scene).with_system(end_scene));
     }
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+pub enum SceneState {
+    None,
+    Setup,
+}
+
+fn setup_scene(mut scene_state: ResMut<State<SceneState>>) {
+    let _ = scene_state.set(SceneState::Setup);
+}
+
+fn end_scene(mut scene_state: ResMut<State<SceneState>>) {
+    let _ = scene_state.set(SceneState::None);
 }
 
 fn display_scene(

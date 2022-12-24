@@ -12,6 +12,7 @@ mod scene;
 mod story;
 mod style;
 mod tracery_generator;
+mod board;
 
 use bevy::{core_pipeline::clear_color::ClearColorConfig, prelude::*};
 use bevy_asset_loader::prelude::{LoadingState, LoadingStateAppExt};
