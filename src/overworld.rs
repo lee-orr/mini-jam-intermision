@@ -1,4 +1,8 @@
 use bevy::{app::AppExit, prelude::*};
+use bevy_egui::{
+    egui::{Color32, Frame},
+    *,
+};
 use bevy_turborand::rng::Rng;
 
 use crate::{
@@ -9,50 +13,58 @@ pub struct OverworldPlugin;
 
 impl Plugin for OverworldPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_system_set(SystemSet::on_enter(AppState::Overworld).with_system(display_overworld))
-            .add_system_set(SystemSet::on_update(AppState::Overworld).with_system(check_click))
-            .add_system_set(clear_ui_system_set(AppState::Overworld));
+        app.init_resource::<OverworldUI>()
+            .add_system_set(SystemSet::on_enter(AppState::Overworld).with_system(setup_overworld))
+            .add_system_set(SystemSet::on_update(AppState::Overworld).with_system(display_overworld));
     }
 }
 
-fn display_overworld(
+#[derive(Default, Resource, Debug, Clone)]
+struct OverworldUI {
+    main_text: Option<String>,
+}
+
+fn setup_overworld(
     mut commands: Commands,
     assets: Res<assets::Assets>,
     stories: Res<Assets<TraceryGenerator>>,
 ) {
     let mut rng = Rng::new();
-    let (text, story_exists) = if let Some(asset) = stories.get(&assets.story) {
+    let text = if let Some(asset) = stories.get(&assets.story) {
         let mut story = Story::generate(&mut rng, asset);
         let intro = story.introduce(&mut rng, asset);
         commands.insert_resource(story);
-        (intro, true)
+        Some(intro)
     } else {
-        ("no story".to_string(), false)
+        None
     };
-    {
-        let text = text;
-        UiRoot::spawn(&mut commands, move |parent| {
-            parent.spawn(main_text("Content:", 100.0, &assets));
-            parent.spawn(main_text(text.clone(), 50.0, &assets));
-            if story_exists {
-                MenuButton::Primary.spawn("continue", "Continue", parent, &assets);
-            } else {
-                MenuButton::Primary.spawn("exit", "Exit", parent, &assets);
-            }
-        });
-    }
+    commands.insert_resource(OverworldUI { main_text: text });
 }
 
-fn check_click(
-    _app_state: ResMut<State<AppState>>,
-    mut clicked: EventReader<ButtonClickEvent>,
-    mut exit: EventWriter<AppExit>,
-) {
-    for click in clicked.iter() {
-        let ButtonClickEvent(val) = click;
-        if val == "exit" {
-            exit.send(AppExit);
-        } else if val == "continue" {
-        }
-    }
+fn display_overworld(mut egui_context: ResMut<EguiContext>, overworld: Res<OverworldUI>) {
+    let ctx = egui_context.ctx_mut();
+    egui::CentralPanel::default()
+        .frame(Frame {
+            fill: Color32::TRANSPARENT,
+            ..Default::default()
+        })
+        .show(&ctx, |ui| {
+            ui.with_layout(
+                egui::Layout {
+                    main_dir: egui::Direction::TopDown,
+                    main_wrap: false,
+                    main_align: egui::Align::Center,
+                    main_justify: false,
+                    cross_align: egui::Align::Center,
+                    cross_justify: false,
+                },
+                |ui| {
+                    if let Some(text) = &overworld.main_text {
+                        ui.add(egui::Label::new(
+                            egui::RichText::new(text).size(50.),
+                        ));
+                    }
+                },
+            );
+        });
 }

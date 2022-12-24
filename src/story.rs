@@ -64,9 +64,9 @@ impl Story {
     fn process_text(&self, text: &str) -> String {
         let updated = text.replace("*main_character*", &self.main_character);
         let updated = updated.replace("*good_faction*", &self.good_faction);
-        let updated = updated.replace("*bad_faction*", &self.main_character);
+        let updated = updated.replace("*bad_faction*", &self.bad_faction);
 
-        updated.replace("*evil_lord*", &self.bad_faction)
+        updated.replace("*evil_lord*", &self.evil_lord)
     }
 
     pub fn introduce(&mut self, rng: &mut Rng, asset: &TraceryGenerator) -> String {

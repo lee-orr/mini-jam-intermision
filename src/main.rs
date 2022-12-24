@@ -11,13 +11,16 @@ mod overworld;
 mod story;
 mod tracery_generator;
 mod ui;
+mod style;
 
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::{LoadingState, LoadingStateAppExt};
+use bevy_egui::EguiPlugin;
 use bevy_turborand::RngPlugin;
 use game_state::AppState;
 use menu::MenuPlugin;
 use overworld::OverworldPlugin;
+use style::StylePlugin;
 use tracery_generator::TraceryPlugin;
 use ui::*;
 
@@ -33,8 +36,10 @@ fn main() {
             },
             ..Default::default()
         }))
-        .add_plugin(RngPlugin::default())
+        .add_plugin(EguiPlugin)
         .add_plugin(StylePlugin)
+        .add_plugin(RngPlugin::default())
+        .add_plugin(UIPlugin)
         .add_plugin(TraceryPlugin)
         .add_plugin(MenuPlugin)
         .add_plugin(OverworldPlugin)
@@ -49,6 +54,9 @@ fn main() {
         .run();
 }
 
-fn setup(mut commands: Commands) {
+fn setup(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
     commands.spawn(Camera3dBundle::default());
 }

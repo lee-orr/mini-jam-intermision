@@ -16,6 +16,7 @@ serde = "*"
 serde_json = "*"
 tracery = { version = "0.2", features = ["tracery_json"] }
 bevy_turborand = { version = "*", features = ["rand"] }
+bevy_egui = "*"
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]

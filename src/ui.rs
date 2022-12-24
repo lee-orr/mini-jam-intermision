@@ -92,7 +92,7 @@ impl MenuButton {
     }
 }
 
-pub struct StylePlugin;
+pub struct UIPlugin;
 
 pub struct ButtonClickEvent(pub String);
 
@@ -121,7 +121,7 @@ impl UiRoot {
     }
 }
 
-impl Plugin for StylePlugin {
+impl Plugin for UIPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ButtonClickEvent>().add_system(hoverable);
     }
