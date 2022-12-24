@@ -3,4 +3,5 @@ pub enum AppState {
     Loading,
     MainMenu,
     Overworld,
+    Scene,
 }

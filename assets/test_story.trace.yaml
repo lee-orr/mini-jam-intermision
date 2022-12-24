@@ -32,20 +32,23 @@ grammar:
   - |-
     In a far away world, *bad_faction* has been working the *good_faction* to the brink of despair.
     Today, we find out if *main_character* can overthrow *evil_lord* and help the *good_faction* find freedom at last.
-
-    We start - 
-    @#reach-location#
+    @#reach-location#|#reach-location#
   - |-
     Everyone knows not to speak badly of *evil_lord* - 
     for the *bad_faction* hear every sound, see every move.
     Only those in the darkest shadows, fighters for the freedom of *good_faction*, dare speak out.
     *main_character* - today you begin your journey to save your people.
-
-    Your first mission:
-    @#reach-location#"
+    @#reach-location#|#reach-location#
+  confrontation:
+  - |-
+    After many years of trying *main_character* finally found *evil_lord* - and now we're going to take him down.
+    @#reach-location#
+  complete:
+  - |-
+    The end...
   reach-location:
-  - "#set-location#reach-location:we must get to #location-name# - #location-description#... it's our only hope!:Ahh - #location-name#, #location-factoid#:Oh god we're stuck here..."
-  - "#set-location#reach-location:#location-description# - #location-name# is our destination#:We've made it!:Looks like we're going to need to find another way..."
+  - "#set-location# we must get to #location-name# - #location-description#... it's our only hope!:Ahh - #location-name#, #location-factoid#:Oh god we're stuck here...:reach-location:#location-name#"
+  - "#set-location# #location-description# - #location-name# is our destination:We've made it!:Looks like we're going to need to find another way...:reach-location:#location-name#"
   set-location:
   - "[location-name:The Shivering Fields][location-description:A flat icy landmass with wind chill for days][location-factoid:home of the Yeti]"
   - "[location-name:Rochester Hill][location-description:A very small hill, covered in grass][location-factoid:Weirdly, barely noticable]"

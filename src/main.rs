@@ -8,6 +8,7 @@ mod assets;
 mod game_state;
 mod menu;
 mod overworld;
+mod scene;
 mod story;
 mod style;
 mod tracery_generator;
@@ -19,6 +20,7 @@ use bevy_turborand::RngPlugin;
 use game_state::AppState;
 use menu::MenuPlugin;
 use overworld::OverworldPlugin;
+use scene::ScenePlugin;
 use style::StylePlugin;
 use tracery_generator::TraceryPlugin;
 
@@ -40,6 +42,7 @@ fn main() {
         .add_plugin(TraceryPlugin)
         .add_plugin(MenuPlugin)
         .add_plugin(OverworldPlugin)
+        .add_plugin(ScenePlugin)
         .insert_resource(ClearColor(Color::hex("25215e").unwrap_or_default()))
         .add_state(AppState::Loading)
         .add_loading_state(

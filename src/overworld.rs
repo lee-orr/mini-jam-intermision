@@ -8,7 +8,7 @@ use bevy_turborand::RngComponent;
 use crate::{
     assets,
     game_state::AppState,
-    story::{Goal, Story},
+    story::{Story, StoryPhase},
     tracery_generator::TraceryGenerator,
 };
 
@@ -27,16 +27,26 @@ fn setup_overworld(
     mut commands: Commands,
     assets: Res<assets::Assets>,
     stories: Res<Assets<TraceryGenerator>>,
+    story: Option<ResMut<Story>>,
 ) {
-    let mut rng = RngComponent::new();
-    if let Some(asset) = stories.get(&assets.story) {
-        let mut story = Story::generate(&mut rng, asset);
-        story.introduce();
-        commands.insert_resource(story);
+    if let Some(mut story) = story {
+        story.generate_next_scenario();
+    } else {
+        let mut rng = RngComponent::new();
+        if let Some(asset) = stories.get(&assets.story) {
+            let mut story = Story::generate(&mut rng, asset);
+            story.generate_next_scenario();
+            commands.insert_resource(story);
+        }
     }
 }
 
-fn display_overworld(mut egui_context: ResMut<EguiContext>, story: Option<ResMut<Story>>) {
+fn display_overworld(
+    mut commands: Commands,
+    mut egui_context: ResMut<EguiContext>,
+    story: Option<ResMut<Story>>,
+    mut app_state: ResMut<State<AppState>>,
+) {
     let ctx = egui_context.ctx_mut();
     egui::CentralPanel::default()
         .frame(Frame {
@@ -55,14 +65,15 @@ fn display_overworld(mut egui_context: ResMut<EguiContext>, story: Option<ResMut
                 },
                 |ui| {
                     if let Some(story) = story {
-                        if let Some(scenario) = story.get_current_scenario() {
+                        if StoryPhase::Complete == story.phase {
+                            if ui.button("The End").clicked() {
+                                let _ = app_state.set(AppState::MainMenu);
+                                commands.remove_resource::<Story>();
+                            }
+                        } else if let Some(scenario) = story.get_current_scenario() {
                             ui.label(RichText::from(&scenario.initial_description).size(30.));
-                            if let Some(goal) = scenario.goals.first() {
-                                ui.label(match &goal {
-                                    Goal::ReachLocation(t, _, _) => t,
-                                });
-                            } else {
-                                ui.label("No goals?");
+                            if ui.button("Start Scenario").clicked() {
+                                let _ = app_state.set(AppState::Scene);
                             }
                         } else {
                             ui.label("Couldn't load scenario");
