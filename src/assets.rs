@@ -7,6 +7,6 @@ use crate::tracery_generator::TraceryGenerator;
 pub struct Assets {
     #[asset(path = "Xolonium-Regular.ttf")]
     pub font: Handle<Font>,
-    #[asset(path = "test_story.trace")]
+    #[asset(path = "test_story.trace.yaml")]
     pub story: Handle<TraceryGenerator>,
 }

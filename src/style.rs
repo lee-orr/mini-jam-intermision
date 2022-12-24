@@ -138,9 +138,9 @@ fn set_egui_color(mut ctx: ResMut<EguiContext>, colors: Res<Colors>) {
         ..default()
     };
 
-    style.spacing.item_spacing = egui::Vec2::new(3., 3.);
-    style.spacing.window_margin = Margin::same(5.);
-    style.spacing.button_padding = egui::Vec2::new(3., 3.);
+    style.spacing.item_spacing = egui::Vec2::new(10., 10.);
+    style.spacing.window_margin = Margin::same(15.);
+    style.spacing.button_padding = egui::Vec2::new(10., 10.);
     style.spacing.interact_size = egui::Vec2::new(10., 10.);
 
     ctx.ctx_mut().set_style(style);
