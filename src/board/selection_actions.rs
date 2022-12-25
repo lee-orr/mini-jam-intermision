@@ -20,7 +20,7 @@ use bevy_sequential_actions::ActionCommands;
 
 use bevy_sequential_actions::Action;
 
-use crate::scenario::TargetSelection;
+use crate::scenario::*;
 
 pub(crate) struct SelectTargetsAction(pub TargetSelection);
 

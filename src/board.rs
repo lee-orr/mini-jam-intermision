@@ -12,7 +12,7 @@ use bevy_sequential_actions::{ActionsBundle, ActionsProxy, ModifyActions};
 use smooth_bevy_cameras::LookTransform;
 
 use crate::game_state::AppState;
-use crate::scenario::{Actor, ActorPosition, AnimateActionsEvents, ScenarioMap};
+use crate::scenario::{scenario_map::*, Actor, ActorPosition, AnimateActionsEvents};
 use crate::scene::SceneState;
 
 use selection_actions::*;
@@ -22,7 +22,7 @@ pub struct BoardPlugin;
 
 impl Plugin for BoardPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_startup_system(startup)
+        app.add_startup_system(board_assets::startup)
             .add_system_set(
                 SystemSet::on_enter(SceneState::None)
                     .with_system(clear_board)
@@ -49,85 +49,6 @@ impl Plugin for BoardPlugin {
 
 #[derive(Component)]
 struct Board;
-
-fn startup(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    let tile = meshes.add(shape::Box::new(1., 0.2, 1.).into());
-    let wall = meshes.add(shape::Box::new(1., 2., 1.).into());
-    let obstacle = meshes.add(shape::Box::new(1., 0.6, 1.).into());
-    let monster = meshes.add(shape::Box::new(0.3, 1.8, 0.2).into());
-    let player = meshes.add(shape::Capsule::default().into());
-
-    let tile_mat = materials.add(StandardMaterial {
-        base_color: Color::GRAY,
-        ..Default::default()
-    });
-    let goal_mat = materials.add(StandardMaterial {
-        base_color: Color::GOLD,
-        ..Default::default()
-    });
-    let start_point_mat = materials.add(StandardMaterial {
-        base_color: Color::GREEN,
-        ..Default::default()
-    });
-    let monster_mat = materials.add(StandardMaterial {
-        base_color: Color::PURPLE,
-        ..Default::default()
-    });
-    let player_mat = materials.add(StandardMaterial {
-        base_color: Color::BLUE,
-        ..Default::default()
-    });
-    let selector_mat = materials.add(StandardMaterial {
-        base_color: Color::Rgba {
-            red: 0.9,
-            green: 0.8,
-            blue: 0.2,
-            alpha: 0.3,
-        },
-        alpha_mode: AlphaMode::Blend,
-        ..Default::default()
-    });
-    let selector_hover = materials.add(StandardMaterial {
-        base_color: Color::Rgba {
-            red: 0.7,
-            green: 0.7,
-            blue: 0.2,
-            alpha: 0.5,
-        },
-        alpha_mode: AlphaMode::Blend,
-        ..Default::default()
-    });
-    let selector_active = materials.add(StandardMaterial {
-        base_color: Color::Rgba {
-            red: 0.2,
-            green: 0.8,
-            blue: 0.5,
-            alpha: 0.5,
-        },
-        alpha_mode: AlphaMode::Blend,
-        ..Default::default()
-    });
-    commands.insert_resource(board_assets::BoardAssets {
-        tile,
-        selector: wall.clone(),
-        wall,
-        obstacle,
-        tile_mat,
-        goal_mat,
-        start_point_mat,
-        monster,
-        player,
-        monster_mat,
-        player_mat,
-        selector_mat,
-        selector_active,
-        selector_hover,
-    });
-}
 
 fn clear_board(mut commands: Commands, query: Query<Entity, With<Board>>) {
     for entity in query.iter() {
@@ -172,14 +93,18 @@ fn generate_board(
                     let pos = (tile.pos.0 as f32, tile.pos.1 as f32);
 
                     let floor_material = match tile.tag {
-                        crate::scenario::TileTag::Start => assets.start_point_mat.clone(),
-                        crate::scenario::TileTag::Target(_) => assets.goal_mat.clone(),
+                        crate::scenario::scenario_map::TileTag::Start => {
+                            assets.start_point_mat.clone()
+                        }
+                        crate::scenario::scenario_map::TileTag::Target(_) => {
+                            assets.goal_mat.clone()
+                        }
                         _ => assets.tile_mat.clone(),
                     };
 
                     match tile.tile_type {
-                        crate::scenario::TileType::Empty => {}
-                        crate::scenario::TileType::Floor => {
+                        crate::scenario::scenario_map::TileType::Empty => {}
+                        crate::scenario::scenario_map::TileType::Floor => {
                             parent.spawn(PbrBundle {
                                 mesh: assets.tile.clone(),
                                 material: floor_material,
@@ -218,7 +143,7 @@ fn generate_board(
                                 ActorPosition(tile.pos.0, tile.pos.1),
                             ));
                         }
-                        crate::scenario::TileTag::Enemy(actor) => {
+                        crate::scenario::scenario_map::TileTag::Enemy(actor) => {
                             parent.spawn((
                                 PbrBundle {
                                     mesh: assets.monster.clone(),

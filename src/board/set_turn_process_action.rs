@@ -7,7 +7,7 @@ use bevy_sequential_actions::ActionCommands;
 
 use bevy_sequential_actions::Action;
 
-use crate::scenario::CurrentTurnProcess;
+use crate::scenario::*;
 
 pub struct SetTurnProcessAction(pub CurrentTurnProcess);
 

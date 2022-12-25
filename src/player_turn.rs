@@ -1,10 +1,4 @@
-use crate::{
-    assets,
-    card::*,
-    scenario::{Actor, ActorResources, CardPlayedEvent},
-    scene::SceneState,
-    ui::*,
-};
+use crate::{assets, card::*, scenario::*, scene::SceneState, ui::*};
 use bevy::prelude::*;
 
 pub struct PlayerTurnPlugin;
