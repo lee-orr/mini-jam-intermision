@@ -12,9 +12,11 @@ mod menu;
 mod overworld;
 mod scenario;
 mod scene;
+mod setup_phase;
 mod story;
 mod style;
 mod tracery_generator;
+mod ui;
 
 use bevy::{core_pipeline::clear_color::ClearColorConfig, prelude::*};
 use bevy_asset_loader::prelude::{LoadingState, LoadingStateAppExt};
@@ -22,12 +24,12 @@ use bevy_egui::EguiPlugin;
 #[cfg(feature = "dev")]
 use bevy_inspector_egui::*;
 use bevy_turborand::RngPlugin;
-use board::BoardPlugin;
+
 use card::CardPlugin;
 use game_state::AppState;
 use menu::MenuPlugin;
 use overworld::OverworldPlugin;
-use scenario::ScenarioPlugin;
+
 use scene::ScenePlugin;
 use smooth_bevy_cameras::{
     controllers::orbit::{OrbitCameraBundle, OrbitCameraController, OrbitCameraPlugin},
@@ -35,6 +37,7 @@ use smooth_bevy_cameras::{
 };
 use style::StylePlugin;
 use tracery_generator::TraceryPlugin;
+use ui::UIPlugin;
 
 fn main() {
     #[cfg(target_arch = "wasm32")]
@@ -57,14 +60,13 @@ fn main() {
     #[cfg(feature = "dev")]
     app.add_plugin(WorldInspectorPlugin::new());
 
-    app.add_plugin(StylePlugin)
+    app.add_plugin(UIPlugin)
+        .add_plugin(StylePlugin)
         .add_plugin(CardPlugin)
         .add_plugin(TraceryPlugin)
         .add_plugin(MenuPlugin)
         .add_plugin(OverworldPlugin)
         .add_plugin(ScenePlugin)
-        .add_plugin(ScenarioPlugin)
-        .add_plugin(BoardPlugin)
         .add_state(AppState::Loading)
         .add_loading_state(
             LoadingState::new(AppState::Loading)

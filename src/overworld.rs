@@ -1,25 +1,16 @@
 use bevy::prelude::*;
-use bevy_egui::{
-    egui::{Color32, Frame, RichText},
-    *,
-};
+
 use bevy_turborand::RngComponent;
 
-use crate::{
-    assets,
-    game_state::AppState,
-    story::{Story, StoryPhase},
-    tracery_generator::TraceryGenerator,
-};
+use crate::{assets, game_state::AppState, story::*, tracery_generator::TraceryGenerator, ui::*};
 
 pub struct OverworldPlugin;
 
 impl Plugin for OverworldPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_system_set(SystemSet::on_enter(AppState::Overworld).with_system(setup_overworld))
-            .add_system_set(
-                SystemSet::on_update(AppState::Overworld).with_system(display_overworld),
-            );
+            .add_system_set(SystemSet::on_update(AppState::Overworld).with_system(check_click))
+            .add_system_set(clear_ui_system_set(AppState::Overworld));
     }
 }
 
@@ -28,58 +19,60 @@ fn setup_overworld(
     assets: Res<assets::Assets>,
     stories: Res<Assets<TraceryGenerator>>,
     story: Option<ResMut<Story>>,
+    current_scenario: Option<Res<Scenario>>,
 ) {
-    if let Some(mut story) = story {
-        story.generate_next_scenario();
+    let story_scenario: Option<(Story, Scenario)> = if let Some(mut story) = story {
+        let current_scenario = current_scenario.map(|s| s.into_inner());
+        story
+            .generate_next_scenario(current_scenario)
+            .map(|scenario| (story.to_owned(), scenario))
     } else {
         let mut rng = RngComponent::new();
         if let Some(asset) = stories.get(&assets.story) {
             let mut story = Story::generate(&mut rng, asset);
-            story.generate_next_scenario();
-            commands.insert_resource(story);
+            story
+                .generate_next_scenario(None)
+                .map(|scenario| (story, scenario))
+        } else {
+            None
         }
+    };
+
+    if story_scenario.is_none() {
+        return;
     }
+    let (story, scenario) = story_scenario.unwrap();
+
+    bevy::log::info!("Setup Overworld UI");
+    UiRoot::spawn(&mut commands, |parent| {
+        if StoryPhase::Complete == story.phase {
+            MainText::new("The End").size(100.).spawn(parent, &assets);
+            MenuButton::Primary.spawn("end", "Back To Menu", parent, &assets);
+        } else {
+            MainText::new(&scenario.initial_description)
+                .size(30.)
+                .alignment(JustifyContent::Center)
+                .spawn(parent, &assets);
+            MenuButton::Primary.spawn("start_scenario", "Start Scenario", parent, &assets);
+        }
+    });
+
+    commands.insert_resource(story);
+    commands.insert_resource(scenario);
 }
 
-fn display_overworld(
+fn check_click(
     mut commands: Commands,
-    mut egui_context: ResMut<EguiContext>,
-    story: Option<ResMut<Story>>,
     mut app_state: ResMut<State<AppState>>,
+    mut clicked: EventReader<ButtonClickEvent>,
 ) {
-    let ctx = egui_context.ctx_mut();
-    egui::CentralPanel::default()
-        .frame(Frame {
-            fill: Color32::TRANSPARENT,
-            ..Default::default()
-        })
-        .show(ctx, |ui| {
-            ui.with_layout(
-                egui::Layout {
-                    main_dir: egui::Direction::TopDown,
-                    main_wrap: false,
-                    main_align: egui::Align::Center,
-                    main_justify: false,
-                    cross_align: egui::Align::Center,
-                    cross_justify: false,
-                },
-                |ui| {
-                    if let Some(story) = story {
-                        if StoryPhase::Complete == story.phase {
-                            if ui.button("The End").clicked() {
-                                let _ = app_state.set(AppState::MainMenu);
-                                commands.remove_resource::<Story>();
-                            }
-                        } else if let Some(scenario) = story.get_current_scenario() {
-                            ui.label(RichText::from(&scenario.initial_description).size(30.));
-                            if ui.button("Start Scenario").clicked() {
-                                let _ = app_state.set(AppState::Scene);
-                            }
-                        } else {
-                            ui.label("Couldn't load scenario");
-                        }
-                    }
-                },
-            );
-        });
+    for click in clicked.iter() {
+        let ButtonClickEvent(val, _) = click;
+        if val == "start_scenario" {
+            let _ = app_state.set(AppState::Scene);
+        } else if val == "end" {
+            let _ = app_state.set(AppState::MainMenu);
+            commands.remove_resource::<Story>();
+        }
+    }
 }

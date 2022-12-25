@@ -4,7 +4,7 @@ use bevy_turborand::GlobalRng;
 use smooth_bevy_cameras::LookTransform;
 
 use crate::scenario::ScenarioMap;
-use crate::{scene::SceneState, story::Story};
+use crate::{scene::SceneState, story::*};
 
 pub struct BoardPlugin;
 
@@ -17,7 +17,7 @@ impl Plugin for BoardPlugin {
                     .with_system(reset_camera),
             )
             .add_system_set(
-                SystemSet::on_enter(SceneState::Playing)
+                SystemSet::on_enter(SceneState::Setup)
                     .with_system(generate_board)
                     .with_system(set_camera),
             );
@@ -94,92 +94,90 @@ fn clear_board(mut commands: Commands, query: Query<Entity, With<Board>>) {
 
 fn generate_board(
     mut commands: Commands,
-    story: Option<ResMut<Story>>,
+    current_scenario: Option<Res<Scenario>>,
     assets: Res<BoardAssets>,
     mut global_rng: ResMut<GlobalRng>,
     _scene_state: ResMut<State<SceneState>>,
 ) {
-    if let Some(story) = story {
-        if let Some(scenario) = story.get_current_scenario() {
-            let scenario_map = ScenarioMap::generate(global_rng.as_mut(), scenario);
+    if let Some(scenario) = current_scenario {
+        let scenario_map = ScenarioMap::generate(global_rng.as_mut(), &scenario);
 
-            let left = -1. * scenario_map.width as f32 / 2.;
-            let top = -1. * scenario_map.height as f32 / 2.;
+        let left = -1. * scenario_map.width as f32 / 2.;
+        let top = -1. * scenario_map.height as f32 / 2.;
 
-            commands
-                .spawn((SpatialBundle::default(), Board))
-                .with_children(|parent| {
-                    parent.spawn(DirectionalLightBundle {
-                        transform: Transform::from_rotation(Quat::from_euler(
-                            EulerRot::XYZ,
-                            2.8,
-                            4.1,
-                            0.,
-                        )),
-                        ..Default::default()
-                    });
-
-                    for tile in scenario_map.tiles.iter() {
-                        let pos = (tile.pos.0 as f32 + left, tile.pos.1 as f32 + top);
-
-                        let floor_material = match tile.tag {
-                            crate::scenario::TileTag::Start => assets.start_point_mat.clone(),
-                            crate::scenario::TileTag::Target => assets.goal_mat.clone(),
-                            _ => assets.tile_mat.clone(),
-                        };
-
-                        match tile.tile_type {
-                            crate::scenario::TileType::Empty => {}
-                            crate::scenario::TileType::Floor => {
-                                parent.spawn(PbrBundle {
-                                    mesh: assets.tile.clone(),
-                                    material: floor_material,
-                                    transform: Transform::from_xyz(pos.0, -0.1, pos.1),
-                                    ..Default::default()
-                                });
-                            }
-                            crate::scenario::TileType::Obstacle => {
-                                parent.spawn(PbrBundle {
-                                    mesh: assets.obstacle.clone(),
-                                    material: floor_material,
-                                    transform: Transform::from_xyz(pos.0, -0.1, pos.1),
-                                    ..Default::default()
-                                });
-                            }
-                            crate::scenario::TileType::Wall => {
-                                parent.spawn(PbrBundle {
-                                    mesh: assets.wall.clone(),
-                                    material: floor_material,
-                                    transform: Transform::from_xyz(pos.0, -0.1, pos.1),
-                                    ..Default::default()
-                                });
-                            }
-                        }
-
-                        match tile.tag {
-                            crate::scenario::TileTag::Start => {
-                                parent.spawn(PbrBundle {
-                                    mesh: assets.player.clone(),
-                                    material: assets.player_mat.clone(),
-                                    transform: Transform::from_xyz(pos.0, 0.5, pos.1),
-                                    ..Default::default()
-                                });
-                            }
-                            crate::scenario::TileTag::Enemy => {
-                                parent.spawn(PbrBundle {
-                                    mesh: assets.monster.clone(),
-                                    material: assets.monster_mat.clone(),
-                                    transform: Transform::from_xyz(pos.0, 0.5, pos.1),
-                                    ..Default::default()
-                                });
-                            }
-                            _ => {}
-                        }
-                    }
+        commands
+            .spawn((SpatialBundle::default(), Board))
+            .with_children(|parent| {
+                parent.spawn(DirectionalLightBundle {
+                    transform: Transform::from_rotation(Quat::from_euler(
+                        EulerRot::XYZ,
+                        2.8,
+                        4.1,
+                        0.,
+                    )),
+                    ..Default::default()
                 });
 
-            commands.insert_resource(scenario_map);
-        }
+                for tile in scenario_map.tiles.iter() {
+                    let pos = (tile.pos.0 as f32 + left, tile.pos.1 as f32 + top);
+
+                    let floor_material = match tile.tag {
+                        crate::scenario::TileTag::Start => assets.start_point_mat.clone(),
+                        crate::scenario::TileTag::Target(_) => assets.goal_mat.clone(),
+                        _ => assets.tile_mat.clone(),
+                    };
+
+                    match tile.tile_type {
+                        crate::scenario::TileType::Empty => {}
+                        crate::scenario::TileType::Floor => {
+                            parent.spawn(PbrBundle {
+                                mesh: assets.tile.clone(),
+                                material: floor_material,
+                                transform: Transform::from_xyz(pos.0, -0.1, pos.1),
+                                ..Default::default()
+                            });
+                        }
+                        crate::scenario::TileType::Obstacle => {
+                            parent.spawn(PbrBundle {
+                                mesh: assets.obstacle.clone(),
+                                material: floor_material,
+                                transform: Transform::from_xyz(pos.0, -0.1, pos.1),
+                                ..Default::default()
+                            });
+                        }
+                        crate::scenario::TileType::Wall => {
+                            parent.spawn(PbrBundle {
+                                mesh: assets.wall.clone(),
+                                material: floor_material,
+                                transform: Transform::from_xyz(pos.0, -0.1, pos.1),
+                                ..Default::default()
+                            });
+                        }
+                    }
+
+                    match tile.tag {
+                        crate::scenario::TileTag::Start => {
+                            parent.spawn(PbrBundle {
+                                mesh: assets.player.clone(),
+                                material: assets.player_mat.clone(),
+                                transform: Transform::from_xyz(pos.0, 0.5, pos.1),
+                                ..Default::default()
+                            });
+                        }
+                        crate::scenario::TileTag::Enemy => {
+                            parent.spawn(PbrBundle {
+                                mesh: assets.monster.clone(),
+                                material: assets.monster_mat.clone(),
+                                transform: Transform::from_xyz(pos.0, 0.5, pos.1),
+                                ..Default::default()
+                            });
+                        }
+                        _ => {}
+                    }
+                }
+            });
+
+        commands.insert_resource(scenario_map);
     }
 }
 

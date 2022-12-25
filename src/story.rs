@@ -35,7 +35,7 @@ impl Default for StoryPhase {
 
 impl StoryPhase {}
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Resource)]
 pub struct Scenario {
     pub initial_description: String,
     pub state: ScenarioState,
@@ -182,7 +182,7 @@ impl Story {
         updated.replace("*evil_lord*", &self.evil_lord)
     }
 
-    fn generate_scenario(&mut self) -> bool {
+    fn generate_scenario(&mut self) -> Option<Scenario> {
         let key = match self.phase {
             StoryPhase::Setup => "intro",
             StoryPhase::Start => "intro",
@@ -193,19 +193,13 @@ impl Story {
         let text = self.asset.generate_from(key, &mut self.rng);
         let text = self.process_text(&text);
         bevy::log::info!("Scenario Text {text}");
-        if let Some(scenario) = Scenario::parse(&text) {
-            self.scenarios.push(scenario);
-            true
-        } else {
-            false
+        Scenario::parse(&text)
+    }
+
+    pub fn generate_next_scenario(&mut self, previous: Option<&Scenario>) -> Option<Scenario> {
+        if let Some(previous) = previous {
+            self.scenarios.push(previous.clone());
         }
-    }
-
-    pub fn get_current_scenario(&self) -> Option<&Scenario> {
-        self.scenarios.last()
-    }
-
-    pub fn generate_next_scenario(&mut self) {
         match self.phase {
             StoryPhase::Setup => {
                 self.phase = StoryPhase::Start;
@@ -218,6 +212,6 @@ impl Story {
             }
             StoryPhase::Complete => {}
         }
-        self.generate_scenario();
+        self.generate_scenario()
     }
 }

@@ -36,7 +36,7 @@ pub enum TileType {
 pub enum TileTag {
     None,
     Start,
-    Target,
+    Target(usize),
     Enemy,
 }
 
@@ -75,12 +75,12 @@ impl ScenarioMap {
 
         random_place_tile(rng, &mut tiles, Some(TileType::Floor), Some(TileTag::Start));
 
-        for _i in scenario.goals.iter() {
+        for (i, _) in scenario.goals.iter().enumerate() {
             random_place_tile(
                 rng,
                 &mut tiles,
                 Some(TileType::Floor),
-                Some(TileTag::Target),
+                Some(TileTag::Target(i)),
             );
         }
 
