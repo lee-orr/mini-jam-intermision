@@ -278,6 +278,11 @@ fn process_card_events(
                     actor_resources.hand.retain(|c| c != card);
                     actor_resources.used.push(card.clone());
 
+                    if actor_resources.hand.len() == 0 {
+                        actor_resources.hand = actor_resources.used.clone();
+                        actor_resources.used = vec![];
+                    }
+
                     if let Some(card) = cards.cards.get(card) {
                         commands.insert_resource(CurrentTurnProcess::CardActionTriggered(
                             *actor,
