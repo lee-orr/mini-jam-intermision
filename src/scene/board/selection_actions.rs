@@ -1,4 +1,3 @@
-use crate::scenario::CurrentTurnProcess;
 
 use bevy_sequential_actions::ActionFinished;
 
@@ -20,7 +19,7 @@ use bevy_sequential_actions::ActionCommands;
 
 use bevy_sequential_actions::Action;
 
-use crate::scenario::*;
+use crate::scene::scenario::*;
 
 pub(crate) struct SelectTargetsAction(pub TargetSelection);
 

@@ -9,7 +9,7 @@ use bevy_sequential_actions::ActionCommands;
 use bevy::prelude::*;
 use bevy_sequential_actions::Action;
 
-use crate::scenario::*;
+use crate::scene::scenario::*;
 
 pub struct ContinueAction(pub Actor);
 

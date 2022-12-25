@@ -7,9 +7,7 @@ use bevy_sequential_actions::ActionCommands;
 
 use bevy_sequential_actions::Action;
 
-use crate::scenario::Actor;
-
-use crate::scenario::ActorPosition;
+use crate::scene::scenario::*;
 
 pub struct MoveAction {
     pub(crate) position: ActorPosition,

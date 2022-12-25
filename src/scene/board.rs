@@ -12,8 +12,8 @@ use bevy_sequential_actions::{ActionsBundle, ActionsProxy, ModifyActions};
 use smooth_bevy_cameras::LookTransform;
 
 use crate::game_state::AppState;
-use crate::scenario::{
-    scenario_map::*, Actor, ActorPosition, AnimateActionsEvents, Goal, GoalStatus,
+use super::scenario::{
+    scenario_map::{*, self}, Actor, ActorPosition, AnimateActionsEvents, Goal, GoalStatus,
 };
 use crate::scene::SceneState;
 
@@ -108,18 +108,18 @@ fn generate_board(
                     let pos = (tile.pos.0 as f32, tile.pos.1 as f32);
 
                     let (floor_material, goal_id) = match tile.tag {
-                        crate::scenario::scenario_map::TileTag::Start => {
+                        scenario_map::TileTag::Start => {
                             (assets.start_point_mat.clone(), None)
                         }
-                        crate::scenario::scenario_map::TileTag::Target(id) => {
+                        scenario_map::TileTag::Target(id) => {
                             (assets.tile_mat.clone(), Some(id))
                         }
                         _ => (assets.tile_mat.clone(), None),
                     };
 
                     match tile.tile_type {
-                        crate::scenario::scenario_map::TileType::Empty => {}
-                        crate::scenario::scenario_map::TileType::Floor => {
+                        scenario_map::TileType::Empty => {}
+                        scenario_map::TileType::Floor => {
                             let mut tile = parent.spawn(PbrBundle {
                                 mesh: assets.tile.clone(),
                                 material: floor_material,
@@ -137,7 +137,7 @@ fn generate_board(
                                 });
                             }
                         }
-                        crate::scenario::TileType::Obstacle => {
+                        TileType::Obstacle => {
                             parent.spawn(PbrBundle {
                                 mesh: assets.obstacle.clone(),
                                 material: floor_material,
@@ -145,7 +145,7 @@ fn generate_board(
                                 ..Default::default()
                             });
                         }
-                        crate::scenario::TileType::Wall => {
+                        TileType::Wall => {
                             parent.spawn(PbrBundle {
                                 mesh: assets.wall.clone(),
                                 material: floor_material,
@@ -156,7 +156,7 @@ fn generate_board(
                     }
 
                     match tile.tag {
-                        crate::scenario::TileTag::Start => {
+                        TileTag::Start => {
                             parent.spawn((
                                 PbrBundle {
                                     mesh: assets.player.clone(),
@@ -168,7 +168,7 @@ fn generate_board(
                                 ActorPosition(tile.pos.0, tile.pos.1),
                             ));
                         }
-                        crate::scenario::scenario_map::TileTag::Enemy(actor) => {
+                        scenario_map::TileTag::Enemy(actor) => {
                             parent.spawn((
                                 PbrBundle {
                                     mesh: assets.monster.clone(),

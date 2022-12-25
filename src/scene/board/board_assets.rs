@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+
 #[derive(Default, Resource)]
 pub(crate) struct BoardAssets {
     pub(crate) tile: Handle<Mesh>,

@@ -1,8 +1,7 @@
 use crate::{
     assets,
     card::*,
-    scenario::{Actor, ActorResource, ActorResources},
-    scene::SceneState,
+    scene::{SceneState, scenario::*},
     story::*,
     ui::*,
 };

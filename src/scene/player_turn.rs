@@ -1,4 +1,10 @@
-use crate::{assets, card::*, scenario::*, scene::SceneState, ui::*};
+use crate::{
+    assets,
+    card::*,
+    scene::{SceneState, scenario::*},
+    story::{Scenario, ScenarioState},
+    ui::*,
+};
 use bevy::prelude::*;
 
 pub struct PlayerTurnPlugin;
@@ -18,6 +24,7 @@ fn display_playerturn_phase_menu(
     assets: Res<assets::Assets>,
     cards: Res<Cards>,
     selected_cards: Res<ActorResources>,
+    scenario: Res<Scenario>,
 ) {
     UiRoot::spawn(&mut commands, |parent| {
         parent
@@ -30,11 +37,17 @@ fn display_playerturn_phase_menu(
                     position: UiRect::bottom(Val::Px(0.)),
                     ..Default::default()
                 },
-                background_color: BackgroundColor(Color::hex("25215e").unwrap_or_default()),
+                background_color: BackgroundColor(Color::hex("12102D").unwrap_or_default()),
                 ..Default::default()
             })
             .with_children(|parent| {
-                MainText::new("Your Turn:").spawn(parent, &assets);
+                if let ScenarioState::InProgress(i) = &scenario.state {
+                    if let Some(goal) = scenario.goals.get(*i) {
+                        MainText::new(&goal.description)
+                            .size(15.)
+                            .spawn(parent, &assets);
+                    }
+                }
                 parent
                     .spawn(NodeBundle {
                         style: Style {

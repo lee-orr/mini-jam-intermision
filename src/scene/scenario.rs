@@ -6,7 +6,12 @@ pub mod types;
 use bevy::prelude::*;
 use bevy_turborand::{DelegatedRng, GlobalRng};
 
-use crate::{card::Cards, game_state::AppState, scene::SceneState, story::{Scenario, ScenarioState}};
+use crate::{
+    card::Cards,
+    game_state::AppState,
+    scene::SceneState,
+    story::{Scenario, ScenarioState},
+};
 
 pub use scenario_map::*;
 pub use types::*;
@@ -145,9 +150,13 @@ fn next_turn_ready(
     map: Option<Res<ScenarioMap>>,
     position_query: Query<(&Actor, &ActorPosition)>,
     mut goal_query: Query<&mut Goal>,
-    mut scene_state: ResMut<State<SceneState>>
+    mut scene_state: ResMut<State<SceneState>>,
 ) {
-    if !current_turn_process.is_changed() || resources.is_none() || scenario.is_none() || map.is_none() {
+    if !current_turn_process.is_changed()
+        || resources.is_none()
+        || scenario.is_none()
+        || map.is_none()
+    {
         return;
     }
     let map = map.unwrap();
@@ -156,7 +165,7 @@ fn next_turn_ready(
 
     if let CurrentTurnProcess::Done(actor) = *current_turn_process {
         let positions = position_query.iter().collect::<Vec<_>>();
-        
+
         let mut current_goal_id = 0;
         for goal in goal_query.iter() {
             if let GoalStatus::Active = goal.status {
@@ -374,7 +383,7 @@ fn current_turn_process_changed(p: Option<Res<CurrentTurnProcess>>) {
 }
 
 fn check_current_goal(
-    current_goal_id:  &usize,
+    current_goal_id: &usize,
     scenario: &Scenario,
     scenario_map: &ScenarioMap,
     positions: &[(&Actor, &ActorPosition)],
@@ -387,11 +396,9 @@ fn check_current_goal(
                     match tile.tag {
                         TileTag::Target(i) if i == *current_goal_id => {
                             let pos = tile.pos.clone();
-                            let player_pos = positions.iter().find_map(|(a,p)| {
-                                match a {
-                                    Actor::Player => Some((p.0, p.1)),
-                                    Actor::Enemy(_) => None,
-                                }
+                            let player_pos = positions.iter().find_map(|(a, p)| match a {
+                                Actor::Player => Some((p.0, p.1)),
+                                Actor::Enemy(_) => None,
                             });
                             info!("Checking player success {:?} - {:?}", pos, player_pos);
                             if Some(pos) == player_pos {
@@ -402,7 +409,7 @@ fn check_current_goal(
                         _ => {}
                     }
                 }
-            },
+            }
         }
     }
     false
