@@ -14,7 +14,9 @@ pub struct SetTurnProcessAction(pub CurrentTurnProcess);
 impl Action for SetTurnProcessAction {
     fn on_start(&mut self, agent: Entity, world: &mut World, _commands: &mut ActionCommands) {
         // Run the wait system on the agent
-        world.entity_mut(agent).insert(SetTurnProcess(self.0.clone()));
+        world
+            .entity_mut(agent)
+            .insert(SetTurnProcess(self.0.clone()));
     }
 
     fn on_stop(&mut self, agent: Entity, world: &mut World, _reason: StopReason) {

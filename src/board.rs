@@ -1,29 +1,22 @@
-
-mod selection_actions;
-mod set_turn_process_action;
 mod board_assets;
 mod continue_action;
 mod move_action;
+mod selection_actions;
+mod set_turn_process_action;
 mod wait_action;
 
 use bevy::prelude::*;
 
-use bevy_sequential_actions::{
-    ActionsBundle, ActionsProxy, ModifyActions, 
-};
+use bevy_sequential_actions::{ActionsBundle, ActionsProxy, ModifyActions};
 
 use smooth_bevy_cameras::LookTransform;
 
 use crate::game_state::AppState;
-use crate::scenario::{
-    Actor, ActorPosition, AnimateActionsEvents, CurrentTurnProcess, ScenarioMap, 
-};
+use crate::scenario::{Actor, ActorPosition, AnimateActionsEvents, ScenarioMap};
 use crate::scene::SceneState;
 
 use selection_actions::*;
 use set_turn_process_action::*;
-use board_assets::*;
-use continue_action::*;
 
 pub struct BoardPlugin;
 
@@ -289,7 +282,9 @@ fn animate_actions(
                 }
                 AnimateActionsEvents::SelectTargets(target_selection) => {
                     bevy::log::info!("Animate Selecting Targets");
-                    actions.add(selection_actions::SelectTargetsAction(target_selection.clone()));
+                    actions.add(selection_actions::SelectTargetsAction(
+                        target_selection.clone(),
+                    ));
                 }
                 AnimateActionsEvents::Move(actor, position) => {
                     bevy::log::info!("Move To Target");
@@ -301,10 +296,8 @@ fn animate_actions(
                 }
                 AnimateActionsEvents::SetTurnProcess(p) => {
                     actions.add(set_turn_process_action::SetTurnProcessAction(p.clone()));
-                },
+                }
             }
         }
     }
 }
-
-

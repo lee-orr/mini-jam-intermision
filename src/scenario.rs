@@ -1,5 +1,3 @@
-use std::ops::Sub;
-
 use bevy::{prelude::*, utils::HashMap};
 use bevy_turborand::{DelegatedRng, GlobalRng};
 
@@ -19,7 +17,9 @@ impl Plugin for ScenarioPlugin {
             .init_resource::<ActorResources>()
             .insert_resource(CurrentTurnProcess::None)
             .add_system_set(SystemSet::on_enter(SceneState::Setup).with_system(setup_scenario))
-            .add_system_set(SystemSet::on_enter(SceneState::EnemyTurn).with_system(choose_enemy_card))
+            .add_system_set(
+                SystemSet::on_enter(SceneState::EnemyTurn).with_system(choose_enemy_card),
+            )
             .add_system_set(
                 SystemSet::on_update(AppState::Scene)
                     .with_system(current_turn_process_changed)
@@ -370,7 +370,10 @@ fn process_card_action(
             if let Some(current_action) = card.actions.get(*action_index) {
                 let targetable = current_action.target();
 
-                let positions = position_query.iter().map(|(a, p)| (*a, *p)).collect::<Vec<_>>();
+                let positions = position_query
+                    .iter()
+                    .map(|(a, p)| (*a, *p))
+                    .collect::<Vec<_>>();
 
                 let valid_targets =
                     propose_valid_targets(actor, &targetable, &positions, &map, resources.as_ref());
@@ -449,14 +452,14 @@ fn apply_action_to_targets(
 
         if card.actions.len() <= next_action {
             info!("Turn Complete - schedule done");
-            animate.send(AnimateActionsEvents::SetTurnProcess(CurrentTurnProcess::Done(*actor)));
+            animate.send(AnimateActionsEvents::SetTurnProcess(
+                CurrentTurnProcess::Done(*actor),
+            ));
         } else {
             info!("Turn Continues - schedule next action");
-            animate.send(AnimateActionsEvents::SetTurnProcess(CurrentTurnProcess::CardActionTriggered(
-                *actor,
-                card.clone(),
-                next_action,
-            )));
+            animate.send(AnimateActionsEvents::SetTurnProcess(
+                CurrentTurnProcess::CardActionTriggered(*actor, card.clone(), next_action),
+            ));
         }
     }
 }
@@ -468,35 +471,42 @@ pub fn propose_valid_targets(
     map: &ScenarioMap,
     _resources: &ActorResources,
 ) -> Vec<(usize, usize)> {
-    let my_position = positions.iter().find_map(|(a,p)|{
-        if a == actor {
-            Some(p.clone())
-        } else {
-            None
-        }
-    });
+    let my_position = positions
+        .iter()
+        .find_map(|(a, p)| if a == actor { Some(*p) } else { None });
     match targetable {
         Targetable::Path { max_distance } => {
             if let Some(my_position) = my_position {
-                let positions = map.tiles.iter().filter_map(|t| {
-                    if t.tile_type == TileType::Floor {
-                        Some(t.pos.clone())
-                    } else {
-                        None
-                    }
-                }).collect::<Vec<_>>();
-                positions_within_n(&(my_position.0, my_position.1), &positions,*max_distance)
+                let positions = map
+                    .tiles
+                    .iter()
+                    .filter_map(|t| {
+                        if t.tile_type == TileType::Floor {
+                            Some(t.pos)
+                        } else {
+                            None
+                        }
+                    })
+                    .collect::<Vec<_>>();
+                positions_within_n(&(my_position.0, my_position.1), &positions, *max_distance)
             } else {
                 vec![]
             }
-        },
+        }
     }
 }
 
-fn positions_within_n(position: &(usize,usize), positions: &[(usize, usize)], distance: usize) -> Vec<(usize, usize)> {
+fn positions_within_n(
+    position: &(usize, usize),
+    positions: &[(usize, usize)],
+    distance: usize,
+) -> Vec<(usize, usize)> {
     let mut checked = vec![];
-    let mut to_check = vec![position.clone()];
-    let mut unchecked = positions.iter().filter_map(|p| if p != position { Some(p.clone())} else { None}).collect::<Vec<_>>();
+    let mut to_check = vec![*position];
+    let mut unchecked = positions
+        .iter()
+        .filter_map(|p| if p != position { Some(*p) } else { None })
+        .collect::<Vec<_>>();
 
     for _ in 0..distance {
         let mut remove = vec![];
@@ -506,12 +516,16 @@ fn positions_within_n(position: &(usize,usize), positions: &[(usize, usize)], di
                 if p.0.abs_diff(pos.0) <= 1 && p.1.abs_diff(pos.1) <= 1 {
                     remove.push(i);
                     if !checked.contains(p) {
-                        next_check.push(p.clone());
+                        next_check.push(*p);
                     }
                 }
             }
         }
-        unchecked = unchecked.iter().enumerate().filter_map(|(i, v)| if remove.contains(&i){None} else {Some(v.clone())}).collect();
+        unchecked = unchecked
+            .iter()
+            .enumerate()
+            .filter_map(|(i, v)| if remove.contains(&i) { None } else { Some(*v) })
+            .collect();
         checked.append(&mut to_check);
         to_check.append(&mut next_check);
     }
@@ -528,9 +542,7 @@ pub fn select_target<T: DelegatedRng>(
     let valid_target_len = selection.valid_targets.len();
     let range = 0..valid_target_len;
 
-    while selected.len() < selection.num_targets_to_select
-        && selected.len() < valid_target_len
-    {
+    while selected.len() < selection.num_targets_to_select && selected.len() < valid_target_len {
         let mut next = rng.usize(range.clone());
         while selected.contains(&next) {
             next = rng.usize(range.clone());
@@ -544,11 +556,15 @@ pub fn select_target<T: DelegatedRng>(
         .collect()
 }
 
-fn choose_enemy_card(mut commands: Commands, 
+fn choose_enemy_card(
+    mut commands: Commands,
     mut events: EventWriter<CardPlayedEvent>,
     mut global_rng: ResMut<GlobalRng>,
-    current_turn_process: Option<Res<CurrentTurnProcess>>, resources: Option<Res<ActorResources>>, cards: Res<Cards>) {
-        info!("Choosing enemy card...");
+    current_turn_process: Option<Res<CurrentTurnProcess>>,
+    resources: Option<Res<ActorResources>>,
+    _cards: Res<Cards>,
+) {
+    info!("Choosing enemy card...");
     if let (Some(process), Some(resources)) = (current_turn_process, resources) {
         info!("Process can continue");
         match *process {
@@ -559,13 +575,16 @@ fn choose_enemy_card(mut commands: Commands,
                     let selected = global_rng.usize(range);
                     if let Some(selected) = hand.get(selected) {
                         info!("Playing a card {:?}", selected);
-                        events.send(CardPlayedEvent { actor, card: selected.clone() });
+                        events.send(CardPlayedEvent {
+                            actor,
+                            card: selected.clone(),
+                        });
                         return;
                     }
                 }
                 info!("Couldn't play anything, skipping turn");
                 commands.insert_resource(CurrentTurnProcess::Done(actor));
-            },
+            }
             _ => {
                 info!("Not thinking - why?");
             }
@@ -588,7 +607,7 @@ pub enum AnimateActionsEvents {
     Continue(Actor),
     SelectTargets(TargetSelection),
     Move(Actor, ActorPosition),
-    SetTurnProcess(CurrentTurnProcess)
+    SetTurnProcess(CurrentTurnProcess),
 }
 
 #[derive(Debug, Clone, Resource)]

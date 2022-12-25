@@ -6,8 +6,8 @@ use bevy_sequential_actions::StopReason;
 
 use bevy_sequential_actions::ActionCommands;
 
-use bevy_sequential_actions::Action;
 use bevy::prelude::*;
+use bevy_sequential_actions::Action;
 
 use crate::scenario::Actor;
 
@@ -31,7 +31,6 @@ pub(crate) struct Continue(Actor);
 pub(crate) fn continue_system(
     mut wait_q: Query<(&mut Continue, &mut ActionFinished)>,
     mut scene_state: ResMut<State<SceneState>>,
-
 ) {
     for (cont, mut finished) in wait_q.iter_mut() {
         finished.confirm_and_reset();
