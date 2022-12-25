@@ -100,7 +100,7 @@ fn card_select(
             MainText::new(format!("Selected {selected}/{total} Cards"))
                 .size(10.)
                 .spawn(parent, &assets);
-            
+
             if selected == total {
                 MenuButton::Primary.spawn("setup-complete", "Complete Setup", parent, &assets);
             }

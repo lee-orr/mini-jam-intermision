@@ -80,14 +80,6 @@ impl CardUI {
         }
     }
 
-    pub fn selected(self) -> Self {
-        Self {
-            selected: true,
-            selectable: true,
-            ..self
-        }
-    }
-
     fn selected_color(&self) -> Color {
         Color::BLUE
     }
