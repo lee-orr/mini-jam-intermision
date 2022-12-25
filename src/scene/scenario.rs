@@ -204,6 +204,10 @@ fn next_turn_ready(
             if let ScenarioState::Success(_) = state {
                 info!("Scenario Complete");
                 let _ = scene_state.set(SceneState::Succeeded);
+                return;
+            } else {
+                let _ = scene_state.set(SceneState::Intermission);
+                return;
             }
         }
 
@@ -212,6 +216,7 @@ fn next_turn_ready(
             info!("Failed...");
             scenario.fail();
             let _ = scene_state.set(SceneState::Failed);
+            return;
         }
 
         queue_next_turn(&mut commands, &mut resources, &actor, &mut animate);

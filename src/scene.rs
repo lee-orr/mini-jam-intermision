@@ -1,4 +1,5 @@
 mod board;
+mod intermission_phase;
 mod player_turn;
 mod scenario;
 mod scenario_end_screens;
@@ -6,6 +7,7 @@ mod setup_phase;
 
 use bevy::prelude::*;
 use board::*;
+use intermission_phase::*;
 use player_turn::PlayerTurnPlugin;
 use scenario::*;
 use setup_phase::*;
@@ -21,6 +23,7 @@ impl Plugin for ScenePlugin {
             .add_plugin(BoardPlugin)
             .add_plugin(SetupPhasePlugin)
             .add_plugin(PlayerTurnPlugin)
+            .add_plugin(IntermissionPhasePlugin)
             .add_system_set(SystemSet::on_enter(AppState::Scene).with_system(setup_scene))
             .add_system_set(SystemSet::on_exit(AppState::Scene).with_system(end_scene))
             .add_system_set(clear_ui_system_set(AppState::Scene))
@@ -52,6 +55,7 @@ pub enum SceneState {
     Processing,
     Succeeded,
     Failed,
+    Intermission,
 }
 
 fn setup_scene(mut scene_state: ResMut<State<SceneState>>) {
