@@ -1,16 +1,16 @@
+mod board;
 mod player_turn;
 mod scenario;
 mod scenario_end_screens;
-mod board;
 mod setup_phase;
 
 use bevy::prelude::*;
+use board::*;
 use player_turn::PlayerTurnPlugin;
 use scenario::*;
 use setup_phase::*;
-use board::*;
 
-use crate::{ assets,  game_state::AppState, ui::*};
+use crate::{game_state::AppState, ui::*};
 
 pub struct ScenePlugin;
 
@@ -52,7 +52,6 @@ pub enum SceneState {
     Processing,
     Succeeded,
     Failed,
-    Intermission,
 }
 
 fn setup_scene(mut scene_state: ResMut<State<SceneState>>) {

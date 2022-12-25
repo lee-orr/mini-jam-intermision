@@ -11,10 +11,11 @@ use bevy_sequential_actions::{ActionsBundle, ActionsProxy, ModifyActions};
 
 use smooth_bevy_cameras::LookTransform;
 
-use crate::game_state::AppState;
 use super::scenario::{
-    scenario_map::{*, self}, Actor, ActorPosition, AnimateActionsEvents, Goal, GoalStatus,
+    scenario_map::{self, *},
+    Actor, ActorPosition, AnimateActionsEvents, Goal, GoalStatus,
 };
+use crate::game_state::AppState;
 use crate::scene::SceneState;
 
 use selection_actions::*;
@@ -108,12 +109,8 @@ fn generate_board(
                     let pos = (tile.pos.0 as f32, tile.pos.1 as f32);
 
                     let (floor_material, goal_id) = match tile.tag {
-                        scenario_map::TileTag::Start => {
-                            (assets.start_point_mat.clone(), None)
-                        }
-                        scenario_map::TileTag::Target(id) => {
-                            (assets.tile_mat.clone(), Some(id))
-                        }
+                        scenario_map::TileTag::Start => (assets.start_point_mat.clone(), None),
+                        scenario_map::TileTag::Target(id) => (assets.tile_mat.clone(), Some(id)),
                         _ => (assets.tile_mat.clone(), None),
                     };
 
@@ -262,7 +259,6 @@ fn draw_active_goal(
             GoalStatus::Hidden => &assets.tile_mat,
             GoalStatus::Active => &assets.goal_mat,
             GoalStatus::Completed => &assets.goal_succeeded_mat,
-            GoalStatus::Failed => &assets.goal_failed_mat,
         }
         .clone();
         commands.entity(entity).insert(material);

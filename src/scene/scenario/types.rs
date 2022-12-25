@@ -86,5 +86,4 @@ pub enum GoalStatus {
     Hidden,
     Active,
     Completed,
-    Failed,
 }

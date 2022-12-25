@@ -144,7 +144,7 @@ fn process_card_events(
 fn next_turn_ready(
     current_turn_process: Res<CurrentTurnProcess>,
     mut commands: Commands,
-    mut resources: Option<ResMut<ActorResources>>,
+    resources: Option<ResMut<ActorResources>>,
     mut animate: EventWriter<AnimateActionsEvents>,
     scenario: Option<ResMut<Scenario>>,
     map: Option<Res<ScenarioMap>>,
@@ -387,7 +387,7 @@ fn check_current_goal(
     scenario: &Scenario,
     scenario_map: &ScenarioMap,
     positions: &[(&Actor, &ActorPosition)],
-    resources: &ActorResources,
+    _resources: &ActorResources,
 ) -> bool {
     if let Some(goal) = scenario.goals.get(*current_goal_id) {
         match goal.goal_type {
@@ -395,7 +395,7 @@ fn check_current_goal(
                 for tile in scenario_map.tiles.iter() {
                     match tile.tag {
                         TileTag::Target(i) if i == *current_goal_id => {
-                            let pos = tile.pos.clone();
+                            let pos = tile.pos;
                             let player_pos = positions.iter().find_map(|(a, p)| match a {
                                 Actor::Player => Some((p.0, p.1)),
                                 Actor::Enemy(_) => None,
