@@ -1,4 +1,4 @@
-use bevy::{prelude::*, utils::HashMap, log};
+use bevy::{prelude::*, utils::HashMap};
 use bevy_turborand::{DelegatedRng, GlobalRng};
 
 use crate::{
@@ -418,8 +418,8 @@ fn process_card_action(
 fn apply_action_to_targets(
     current_turn_process: Res<CurrentTurnProcess>,
     mut animate: EventWriter<AnimateActionsEvents>,
-    mut commands: Commands,) {
-        
+    mut commands: Commands,
+) {
     if !current_turn_process.is_changed() {
         return;
     }
@@ -431,9 +431,12 @@ fn apply_action_to_targets(
             match action {
                 crate::card::CardAction::Move(_) => {
                     if let Some(position) = targets.first() {
-                        animate.send(AnimateActionsEvents::Move(actor.clone(), ActorPosition(position.0, position.1)));
+                        animate.send(AnimateActionsEvents::Move(
+                            *actor,
+                            ActorPosition(position.0, position.1),
+                        ));
                     }
-                },
+                }
             }
         }
 
@@ -441,10 +444,14 @@ fn apply_action_to_targets(
 
         if card.actions.len() <= next_action {
             info!("Turn Complete - schedule done");
-            commands.insert_resource(CurrentTurnProcess::Done(actor.clone()));
+            commands.insert_resource(CurrentTurnProcess::Done(*actor));
         } else {
             info!("Turn Continues - schedule next action");
-            commands.insert_resource(CurrentTurnProcess::CardActionTriggered(actor.clone(), card.clone(), next_action))
+            commands.insert_resource(CurrentTurnProcess::CardActionTriggered(
+                *actor,
+                card.clone(),
+                next_action,
+            ))
         }
     }
 }

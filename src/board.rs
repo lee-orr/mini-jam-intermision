@@ -298,8 +298,12 @@ fn animate_actions(
                 }
                 AnimateActionsEvents::Move(actor, position) => {
                     bevy::log::info!("Move To Target");
-                    actions.add(MoveAction { actor: actor.clone(), position: position.clone(), speed: 10.});
-                },
+                    actions.add(MoveAction {
+                        actor: *actor,
+                        position: *position,
+                        speed: 10.,
+                    });
+                }
             }
         }
     }
@@ -308,38 +312,44 @@ fn animate_actions(
 pub struct MoveAction {
     position: ActorPosition,
     actor: Actor,
-    speed: f32
+    speed: f32,
 }
 
 impl Action for MoveAction {
     fn on_start(&mut self, agent: Entity, world: &mut World, _commands: &mut ActionCommands) {
-
         // Run the wait system on the agent
-        world.entity_mut(agent).insert(Move(self.actor, self.position, self.speed));
+        world
+            .entity_mut(agent)
+            .insert(Move(self.actor, self.position, self.speed));
     }
 
-    fn on_stop(&mut self, agent: Entity, world: &mut World, reason: StopReason) {
+    fn on_stop(&mut self, agent: Entity, world: &mut World, _reason: StopReason) {
         // Remove the wait component from the agent
-        let wait = world.entity_mut(agent).remove::<Move>();
+        let _wait = world.entity_mut(agent).remove::<Move>();
     }
 }
 
 #[derive(Component)]
 struct Move(Actor, ActorPosition, f32);
 
-fn move_system(mut move_q: Query<(&mut Move, &mut ActionFinished)>, mut moveable: Query<(&Actor, &mut ActorPosition, &mut Transform)>, time: Res<Time>) {
+fn move_system(
+    mut move_q: Query<(&mut Move, &mut ActionFinished)>,
+    mut moveable: Query<(&Actor, &mut ActorPosition, &mut Transform)>,
+    time: Res<Time>,
+) {
     for (target, mut finished) in move_q.iter_mut() {
         for (actor, mut pos, mut transform) in moveable.iter_mut() {
             if actor == &target.0 {
                 let current_position = transform.translation;
-                let target_position = Vec3::new(target.1.0 as f32, current_position.y,  target.1.1 as f32);
+                let target_position =
+                    Vec3::new(target.1 .0 as f32, current_position.y, target.1 .1 as f32);
                 let delta = target_position - transform.translation;
                 let distance_to_move = time.delta_seconds() * target.2;
 
                 if delta.length_squared() <= distance_to_move {
                     transform.translation = target_position;
-                    pos.0 = target.1.0;
-                    pos.1 = target.1.1;
+                    pos.0 = target.1 .0;
+                    pos.1 = target.1 .1;
                     finished.confirm_and_reset();
                 } else {
                     let move_vector = delta.normalize() * distance_to_move;
