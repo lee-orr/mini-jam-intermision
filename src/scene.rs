@@ -23,6 +23,7 @@ pub enum SceneState {
     None,
     Setup,
     PlayerTurn,
+    EnemyTurn,
     Processing,
 }
 
