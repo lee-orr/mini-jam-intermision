@@ -23,6 +23,7 @@ use bevy_asset_loader::prelude::{LoadingState, LoadingStateAppExt};
 use bevy_egui::EguiPlugin;
 #[cfg(feature = "dev")]
 use bevy_inspector_egui::*;
+use bevy_mod_picking::PickingCameraBundle;
 use bevy_sequential_actions::SequentialActionsPlugin;
 use bevy_turborand::RngPlugin;
 
@@ -56,7 +57,8 @@ fn main() {
     .add_plugin(LookTransformPlugin)
     .add_plugin(OrbitCameraPlugin::default())
     .add_plugin(RngPlugin::default())
-    .add_plugin(SequentialActionsPlugin);
+    .add_plugin(SequentialActionsPlugin)
+    .add_plugins(bevy_mod_picking::DefaultPickingPlugins);
 
     #[cfg(feature = "dev")]
     app.add_plugin(WorldInspectorPlugin::new());
@@ -81,7 +83,7 @@ fn setup(mut commands: Commands) {
     let eye = Vec3::new(0., 15., 0.);
     let target = Vec3::default();
     commands
-        .spawn(Camera3dBundle::default())
+        .spawn((Camera3dBundle::default(), PickingCameraBundle::default()))
         .insert(OrbitCameraBundle::new(
             OrbitCameraController {
                 enabled: true,

@@ -25,6 +25,14 @@ pub enum Targetable {
     Path { max_distance: usize },
 }
 
+impl Targetable {
+    pub fn num_targets(&self) -> usize {
+        match self {
+            Targetable::Path { max_distance: _ } => 1,
+        }
+    }
+}
+
 impl CardAction {
     pub fn describe(&self) -> String {
         match self {

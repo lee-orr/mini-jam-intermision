@@ -73,7 +73,6 @@ fn click_event(mut events: EventReader<CardClickEvent>, mut sender: EventWriter<
         let played = CardPlayedEvent {
             actor: Actor::Player,
             card: event.0.to_string(),
-            targets: vec![],
         };
 
         sender.send(played);
