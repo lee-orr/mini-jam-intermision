@@ -7,7 +7,7 @@ use bevy_turborand::GlobalRng;
 use smooth_bevy_cameras::LookTransform;
 
 use crate::game_state::AppState;
-use crate::scenario::{Actor, AnimateActionsEvents, ScenarioMap};
+use crate::scenario::{AnimateActionsEvents, ScenarioMap};
 use crate::{scene::SceneState, story::*};
 
 pub struct BoardPlugin;
@@ -21,7 +21,7 @@ impl Plugin for BoardPlugin {
                     .with_system(reset_camera),
             )
             .add_system_set(
-                SystemSet::on_enter(SceneState::Setup)
+                SystemSet::on_update(SceneState::Setup)
                     .with_system(generate_board)
                     .with_system(set_camera),
             )
@@ -104,13 +104,11 @@ fn clear_board(mut commands: Commands, query: Query<Entity, With<Board>>) {
 
 fn generate_board(
     mut commands: Commands,
-    current_scenario: Option<Res<Scenario>>,
     assets: Res<BoardAssets>,
-    mut global_rng: ResMut<GlobalRng>,
-    _scene_state: ResMut<State<SceneState>>,
+    scenario_map: Option<Res<ScenarioMap>>
 ) {
-    if let Some(scenario) = current_scenario {
-        let scenario_map = ScenarioMap::generate(global_rng.as_mut(), &scenario);
+    if let Some(scenario_map) = scenario_map {
+        if !scenario_map.is_changed() { return; }
 
         let left = -1. * scenario_map.width as f32 / 2.;
         let top = -1. * scenario_map.height as f32 / 2.;
@@ -186,12 +184,13 @@ fn generate_board(
                     }
                 }
             });
-
-        commands.insert_resource(scenario_map);
     }
 }
 
-fn set_camera(mut query: Query<&mut LookTransform>) {
+fn set_camera(mut query: Query<&mut LookTransform>, new_board: Query<Entity, Added<Board>>) {
+    if new_board.is_empty() {
+        return;
+    }
     let eye = Vec3::new(0., 10., 0.);
     let target = Vec3::default();
     bevy::log::info!("Ready to play");
@@ -228,8 +227,8 @@ fn animate_actions(
                         current: None,
                     });
                 }
-                AnimateActionsEvents::Continue(actor) => {
-                    actions.add(ContinueAction(actor.clone()));
+                AnimateActionsEvents::Continue => {
+                    actions.add(ContinueAction);
                 }
             }
         }
@@ -275,12 +274,12 @@ fn wait_system(mut wait_q: Query<(&mut Wait, &mut ActionFinished)>, time: Res<Ti
     }
 }
 
-pub struct ContinueAction(Actor);
+pub struct ContinueAction;
 
 impl Action for ContinueAction {
     fn on_start(&mut self, agent: Entity, world: &mut World, _commands: &mut ActionCommands) {
         // Run the wait system on the agent
-        world.entity_mut(agent).insert(Continue(self.0.clone()));
+        world.entity_mut(agent).insert(Continue);
     }
 
     fn on_stop(&mut self, agent: Entity, world: &mut World, _reason: StopReason) {
@@ -290,7 +289,7 @@ impl Action for ContinueAction {
 }
 
 #[derive(Component)]
-struct Continue(Actor);
+struct Continue;
 
 fn continue_system(
     mut wait_q: Query<(&mut Continue, &mut ActionFinished)>,
@@ -299,9 +298,5 @@ fn continue_system(
     for (_cont, mut finished) in wait_q.iter_mut() {
         finished.confirm_and_reset();
         let _ = scene_state.set(SceneState::PlayerTurn);
-        // match cont.0 {
-        //     Actor::Player => {let _ = scene_state.set(SceneState::PlayerTurn)},
-        //     Actor::Enemy(_) => {},
-        // }
     }
 }

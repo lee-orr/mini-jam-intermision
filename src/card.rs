@@ -57,8 +57,12 @@ impl Card {
     }
 
     pub fn description(&self) -> String {
-        if self.actions.len() > 0 {
-            self.actions.iter().map(|c| c.describe()).collect::<Vec<_>>().join("\n")
+        if !self.actions.is_empty() {
+            self.actions
+                .iter()
+                .map(|c| c.describe())
+                .collect::<Vec<_>>()
+                .join("\n")
         } else {
             format!("Describing {}", self.name)
         }

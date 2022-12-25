@@ -11,7 +11,8 @@ impl Plugin for ScenarioPlugin {
             .add_event::<AnimateActionsEvents>()
             .init_resource::<ActorResources>()
             .add_system_set(
-                SystemSet::on_enter(SceneState::Setup).with_system(setup_actor_resources),
+                SystemSet::on_enter(SceneState::Setup)
+                    .with_system(setup_scenario),
             )
             .add_system_set(SystemSet::on_update(AppState::Scene).with_system(process_card_events));
     }
@@ -43,6 +44,7 @@ pub struct ActorResource {
     pub used: Vec<String>,
     pub discarded: Vec<String>,
     pub health: usize,
+    pub position: Option<(usize, usize)>
 }
 
 #[derive(Default, Debug, Clone, Resource)]
@@ -50,46 +52,53 @@ pub struct ActorResources {
     pub resources: HashMap<Actor, ActorResource>,
 }
 
-fn setup_actor_resources(
+fn setup_scenario(
     mut commands: Commands,
     cards: Res<Cards>,
     mut global_rng: ResMut<GlobalRng>,
+    current_scenario: Option<Res<Scenario>>,
 ) {
-    let cards = cards.cards.iter().collect::<Vec<_>>();
-    let num_cards = cards.len();
+    if let Some(scenario) = current_scenario {
+        let cards = cards.cards.iter().collect::<Vec<_>>();
+        let num_cards = cards.len();
 
-    let mut selected = Vec::with_capacity(3);
+        let mut selected = Vec::with_capacity(3);
 
-    for _i in 0..3 {
-        let mut next = global_rng.usize(0..num_cards);
-        while selected.contains(&next) {
-            next = global_rng.usize(0..num_cards);
+        for _i in 0..3 {
+            let mut next = global_rng.usize(0..num_cards);
+            while selected.contains(&next) {
+                next = global_rng.usize(0..num_cards);
+            }
+            selected.push(next);
         }
-        selected.push(next);
+
+        let selected = selected
+            .iter()
+            .filter_map(|i| cards.get(*i))
+            .map(|(id, _)| id.to_string())
+            .collect::<Vec<_>>();
+
+        let resoures = (0..global_rng.usize(3..5))
+            .map(|i| {
+                (
+                    Actor::Enemy(i),
+                    ActorResource {
+                        hand: selected.clone(),
+                        health: 2,
+                        ..Default::default()
+                    },
+                )
+            })
+            .collect();
+
+        let map = ScenarioMap::generate(global_rng.as_mut(), scenario.as_ref());
+
+        commands.insert_resource(ActorResources {
+            resources: resoures,
+        });
+
+        commands.insert_resource(map);
     }
-
-    let selected = selected
-        .iter()
-        .filter_map(|i| cards.get(*i))
-        .map(|(id, _)| id.to_string())
-        .collect::<Vec<_>>();
-
-    let resoures = (0..5)
-        .map(|i| {
-            (
-                Actor::Enemy(i),
-                ActorResource {
-                    hand: selected.clone(),
-                    health: 2,
-                    ..Default::default()
-                },
-            )
-        })
-        .collect();
-
-    commands.insert_resource(ActorResources {
-        resources: resoures,
-    });
 }
 
 #[derive(Debug, Clone, Default)]
@@ -218,7 +227,7 @@ fn process_card_events(
     } in events.iter()
     {
         is_processing = true;
-        if let Some(mut resources) = resources.as_mut() {
+        if let Some(resources) = resources.as_mut() {
             if let Some(actor_resources) = resources.resources.get_mut(actor) {
                 if actor_resources.hand.contains(card) {
                     actor_resources.hand.retain(|c| c != card);
@@ -231,12 +240,12 @@ fn process_card_events(
     if is_processing {
         let _ = scene_state.set(SceneState::Processing);
         animate.send(AnimateActionsEvents::Wait(1.));
-        animate.send(AnimateActionsEvents::Continue(Actor::Player));
+        animate.send(AnimateActionsEvents::Continue);
     }
 }
 
 #[derive(Debug, Clone)]
 pub enum AnimateActionsEvents {
     Wait(f32),
-    Continue(Actor),
+    Continue,
 }
