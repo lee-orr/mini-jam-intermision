@@ -1,15 +1,15 @@
 mod enemy_ai;
 pub mod scenario_map;
 mod scenario_utilities;
-pub mod turn_types;
+pub mod types;
 
-use bevy::{prelude::*, utils::HashMap};
+use bevy::prelude::*;
 use bevy_turborand::{DelegatedRng, GlobalRng};
 
-use crate::{card::Cards, game_state::AppState, scene::SceneState, story::Scenario};
+use crate::{card::Cards, game_state::AppState, scene::SceneState, story::{Scenario, ScenarioState}};
 
 pub use scenario_map::*;
-pub use turn_types::*;
+pub use types::*;
 
 pub struct ScenarioPlugin;
 
@@ -32,20 +32,6 @@ impl Plugin for ScenarioPlugin {
                     .with_system(apply_action_to_targets),
             );
     }
-}
-
-#[derive(Default, Debug, Clone)]
-pub struct ActorResource {
-    pub hand: Vec<String>,
-    pub used: Vec<String>,
-    pub discarded: Vec<String>,
-    pub health: usize,
-}
-
-#[derive(Default, Debug, Clone, Resource)]
-pub struct ActorResources {
-    pub resources: HashMap<Actor, ActorResource>,
-    pub turn_order: Vec<Actor>,
 }
 
 fn setup_scenario(
@@ -153,14 +139,72 @@ fn process_card_events(
 fn next_turn_ready(
     current_turn_process: Res<CurrentTurnProcess>,
     mut commands: Commands,
-    mut resources: ResMut<ActorResources>,
+    mut resources: Option<ResMut<ActorResources>>,
     mut animate: EventWriter<AnimateActionsEvents>,
+    scenario: Option<ResMut<Scenario>>,
+    map: Option<Res<ScenarioMap>>,
+    position_query: Query<(&Actor, &ActorPosition)>,
+    mut goal_query: Query<&mut Goal>,
+    mut scene_state: ResMut<State<SceneState>>
 ) {
-    if !current_turn_process.is_changed() {
+    if !current_turn_process.is_changed() || resources.is_none() || scenario.is_none() || map.is_none() {
         return;
     }
+    let map = map.unwrap();
+    let mut resources = resources.unwrap();
+    let mut scenario = scenario.unwrap();
 
     if let CurrentTurnProcess::Done(actor) = *current_turn_process {
+        let positions = position_query.iter().collect::<Vec<_>>();
+        
+        let mut current_goal_id = 0;
+        for goal in goal_query.iter() {
+            if let GoalStatus::Active = goal.status {
+                current_goal_id = goal.number;
+                break;
+            }
+        }
+
+        let goal_success = check_current_goal(
+            &current_goal_id,
+            scenario.as_ref(),
+            map.as_ref(),
+            &positions,
+            resources.as_ref(),
+        );
+        if goal_success {
+            info!("Goal Succeeded");
+            let state = scenario.succeed();
+            info!("Scenario State {:?}", state);
+
+            for mut goal in goal_query.iter_mut() {
+                if let GoalStatus::Active = goal.status {
+                    goal.status = GoalStatus::Completed;
+                    break;
+                }
+            }
+
+            let next_goal = current_goal_id + 1;
+            for mut goal in goal_query.iter_mut() {
+                if goal.number == next_goal {
+                    goal.status = GoalStatus::Active;
+                    break;
+                }
+            }
+
+            if let ScenarioState::Success(_) = state {
+                info!("Scenario Complete");
+                let _ = scene_state.set(SceneState::Succeeded);
+            }
+        }
+
+        let failure = check_player_failed(&resources);
+        if failure {
+            info!("Failed...");
+            scenario.fail();
+            let _ = scene_state.set(SceneState::Failed);
+        }
+
         queue_next_turn(&mut commands, &mut resources, &actor, &mut animate);
     }
 }
@@ -327,4 +371,48 @@ fn current_turn_process_changed(p: Option<Res<CurrentTurnProcess>>) {
             info!("Process Changed: {:?}", p);
         }
     }
+}
+
+fn check_current_goal(
+    current_goal_id:  &usize,
+    scenario: &Scenario,
+    scenario_map: &ScenarioMap,
+    positions: &[(&Actor, &ActorPosition)],
+    resources: &ActorResources,
+) -> bool {
+    if let Some(goal) = scenario.goals.get(*current_goal_id) {
+        match goal.goal_type {
+            crate::story::GoalType::ReachLocation(_) => {
+                for tile in scenario_map.tiles.iter() {
+                    match tile.tag {
+                        TileTag::Target(i) if i == *current_goal_id => {
+                            let pos = tile.pos.clone();
+                            let player_pos = positions.iter().find_map(|(a,p)| {
+                                match a {
+                                    Actor::Player => Some((p.0, p.1)),
+                                    Actor::Enemy(_) => None,
+                                }
+                            });
+                            info!("Checking player success {:?} - {:?}", pos, player_pos);
+                            if Some(pos) == player_pos {
+                                return true;
+                            }
+                            break;
+                        }
+                        _ => {}
+                    }
+                }
+            },
+        }
+    }
+    false
+}
+
+fn check_player_failed(resources: &ActorResources) -> bool {
+    if let Some(player_resource) = resources.resources.get(&Actor::Player) {
+        if player_resource.health == 0 {
+            return true;
+        }
+    }
+    false
 }

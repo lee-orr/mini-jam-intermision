@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::HashMap};
 
 use crate::card::Card;
 
@@ -60,3 +60,31 @@ impl Ord for Actor {
 
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ActorPosition(pub usize, pub usize);
+
+#[derive(Default, Debug, Clone)]
+pub struct ActorResource {
+    pub hand: Vec<String>,
+    pub used: Vec<String>,
+    pub discarded: Vec<String>,
+    pub health: usize,
+}
+
+#[derive(Default, Debug, Clone, Resource)]
+pub struct ActorResources {
+    pub resources: HashMap<Actor, ActorResource>,
+    pub turn_order: Vec<Actor>,
+}
+
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Goal {
+    pub number: usize,
+    pub status: GoalStatus,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum GoalStatus {
+    Hidden,
+    Active,
+    Completed,
+    Failed,
+}

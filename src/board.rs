@@ -12,11 +12,15 @@ use bevy_sequential_actions::{ActionsBundle, ActionsProxy, ModifyActions};
 use smooth_bevy_cameras::LookTransform;
 
 use crate::game_state::AppState;
-use crate::scenario::{scenario_map::*, Actor, ActorPosition, AnimateActionsEvents};
+use crate::scenario::{
+    scenario_map::*, Actor, ActorPosition, AnimateActionsEvents, Goal, GoalStatus,
+};
 use crate::scene::SceneState;
 
 use selection_actions::*;
 use set_turn_process_action::*;
+
+use self::board_assets::BoardAssets;
 
 pub struct BoardPlugin;
 
@@ -25,6 +29,16 @@ impl Plugin for BoardPlugin {
         app.add_startup_system(board_assets::startup)
             .add_system_set(
                 SystemSet::on_enter(SceneState::None)
+                    .with_system(clear_board)
+                    .with_system(reset_camera),
+            )
+            .add_system_set(
+                SystemSet::on_enter(SceneState::Succeeded)
+                    .with_system(clear_board)
+                    .with_system(reset_camera),
+            )
+            .add_system_set(
+                SystemSet::on_enter(SceneState::Failed)
                     .with_system(clear_board)
                     .with_system(reset_camera),
             )
@@ -42,7 +56,8 @@ impl Plugin for BoardPlugin {
                     .with_system(process_selection_events)
                     .with_system(set_selection)
                     .with_system(move_action::move_system)
-                    .with_system(set_turn_process_system),
+                    .with_system(set_turn_process_system)
+                    .with_system(draw_active_goal),
             );
     }
 }
@@ -92,25 +107,35 @@ fn generate_board(
                 for tile in scenario_map.tiles.iter() {
                     let pos = (tile.pos.0 as f32, tile.pos.1 as f32);
 
-                    let floor_material = match tile.tag {
+                    let (floor_material, goal_id) = match tile.tag {
                         crate::scenario::scenario_map::TileTag::Start => {
-                            assets.start_point_mat.clone()
+                            (assets.start_point_mat.clone(), None)
                         }
-                        crate::scenario::scenario_map::TileTag::Target(_) => {
-                            assets.goal_mat.clone()
+                        crate::scenario::scenario_map::TileTag::Target(id) => {
+                            (assets.tile_mat.clone(), Some(id))
                         }
-                        _ => assets.tile_mat.clone(),
+                        _ => (assets.tile_mat.clone(), None),
                     };
 
                     match tile.tile_type {
                         crate::scenario::scenario_map::TileType::Empty => {}
                         crate::scenario::scenario_map::TileType::Floor => {
-                            parent.spawn(PbrBundle {
+                            let mut tile = parent.spawn(PbrBundle {
                                 mesh: assets.tile.clone(),
                                 material: floor_material,
                                 transform: Transform::from_xyz(pos.0, -0.1, pos.1),
                                 ..Default::default()
                             });
+                            if let Some(goal_id) = goal_id {
+                                tile.insert(Goal {
+                                    number: goal_id,
+                                    status: if goal_id == 0 {
+                                        GoalStatus::Active
+                                    } else {
+                                        GoalStatus::Hidden
+                                    },
+                                });
+                            }
                         }
                         crate::scenario::TileType::Obstacle => {
                             parent.spawn(PbrBundle {
@@ -224,5 +249,22 @@ fn animate_actions(
                 }
             }
         }
+    }
+}
+
+fn draw_active_goal(
+    mut commands: Commands,
+    goals: Query<(Entity, &Goal), Changed<Goal>>,
+    assets: Res<BoardAssets>,
+) {
+    for (entity, goal) in goals.iter() {
+        let material = match goal.status {
+            GoalStatus::Hidden => &assets.tile_mat,
+            GoalStatus::Active => &assets.goal_mat,
+            GoalStatus::Completed => &assets.goal_succeeded_mat,
+            GoalStatus::Failed => &assets.goal_failed_mat,
+        }
+        .clone();
+        commands.entity(entity).insert(material);
     }
 }

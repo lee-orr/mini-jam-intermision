@@ -10,6 +10,8 @@ pub(crate) struct BoardAssets {
     pub(crate) monster_mat: Handle<StandardMaterial>,
     pub(crate) player_mat: Handle<StandardMaterial>,
     pub(crate) goal_mat: Handle<StandardMaterial>,
+    pub(crate) goal_succeeded_mat: Handle<StandardMaterial>,
+    pub(crate) goal_failed_mat: Handle<StandardMaterial>,
     pub(crate) start_point_mat: Handle<StandardMaterial>,
     pub(crate) selector: Handle<Mesh>,
     pub(crate) selector_mat: Handle<StandardMaterial>,
@@ -33,6 +35,14 @@ pub fn startup(
     });
     let goal_mat = materials.add(StandardMaterial {
         base_color: Color::GOLD,
+        ..Default::default()
+    });
+    let goal_succeeded_mat = materials.add(StandardMaterial {
+        base_color: Color::DARK_GRAY,
+        ..Default::default()
+    });
+    let goal_failed_mat = materials.add(StandardMaterial {
+        base_color: Color::RED,
         ..Default::default()
     });
     let start_point_mat = materials.add(StandardMaterial {
@@ -92,5 +102,7 @@ pub fn startup(
         selector_mat,
         selector_active,
         selector_hover,
+        goal_failed_mat,
+        goal_succeeded_mat,
     });
 }
