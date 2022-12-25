@@ -19,6 +19,7 @@ bevy_turborand = { version = "*", features = ["rand"] }
 bevy_egui = "*"
 smooth-bevy-cameras = "*"
 bevy-inspector-egui = "*"
+kayak_ui = "*"
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]

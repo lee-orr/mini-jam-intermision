@@ -14,7 +14,6 @@ mod scenario;
 mod scene;
 mod setup_phase;
 mod story;
-mod style;
 mod tracery_generator;
 mod ui;
 
@@ -35,7 +34,6 @@ use smooth_bevy_cameras::{
     controllers::orbit::{OrbitCameraBundle, OrbitCameraController, OrbitCameraPlugin},
     LookTransformPlugin,
 };
-use style::StylePlugin;
 use tracery_generator::TraceryPlugin;
 use ui::UIPlugin;
 
@@ -61,7 +59,6 @@ fn main() {
     app.add_plugin(WorldInspectorPlugin::new());
 
     app.add_plugin(UIPlugin)
-        .add_plugin(StylePlugin)
         .add_plugin(CardPlugin)
         .add_plugin(TraceryPlugin)
         .add_plugin(MenuPlugin)

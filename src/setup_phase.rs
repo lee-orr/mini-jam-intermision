@@ -1,4 +1,4 @@
-use crate::{assets, card::*, scene::SceneState, story::*, ui::*};
+use crate::{assets, card::*, scenario::SelectedCards, scene::SceneState, story::*, ui::*};
 use bevy::prelude::*;
 
 pub struct SetupPhasePlugin;
@@ -8,7 +8,11 @@ impl Plugin for SetupPhasePlugin {
         app.add_system_set(
             SystemSet::on_enter(SceneState::Setup).with_system(display_setup_phase_menu),
         )
-        .add_system_set(SystemSet::on_update(SceneState::Setup).with_system(card_select))
+        .add_system_set(
+            SystemSet::on_update(SceneState::Setup)
+                .with_system(card_select)
+                .with_system(click_event),
+        )
         .add_system_set(clear_ui_system_set(SceneState::Setup));
     }
 }
@@ -105,5 +109,30 @@ fn card_select(
                 MenuButton::Primary.spawn("setup-complete", "Complete Setup", parent, &assets);
             }
         });
+    }
+}
+
+fn click_event(
+    mut events: EventReader<ButtonClickEvent>,
+    cards: Query<&CardUI>,
+    mut scene_state: ResMut<State<SceneState>>,
+    mut selected_cards: ResMut<SelectedCards>,
+) {
+    for event in events.iter() {
+        if event.0 == "setup-complete" {
+            let selected = cards
+                .iter()
+                .filter_map(|card| {
+                    if card.selected {
+                        Some(card.card_id.clone())
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+
+            selected_cards.player = selected;
+            let _ = scene_state.set(SceneState::RoundStart);
+        }
     }
 }

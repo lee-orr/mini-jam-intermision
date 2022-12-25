@@ -1,12 +1,16 @@
 use bevy::prelude::*;
 use bevy_turborand::DelegatedRng;
 
-use crate::story::Scenario;
+use crate::{scene::SceneState, story::Scenario};
 
 pub struct ScenarioPlugin;
 
 impl Plugin for ScenarioPlugin {
-    fn build(&self, _app: &mut bevy::prelude::App) {}
+    fn build(&self, app: &mut bevy::prelude::App) {
+        app.init_resource::<SelectedCards>().add_system_set(
+            SystemSet::on_enter(SceneState::Setup).with_system(setup_selected_cards),
+        );
+    }
 }
 
 #[derive(Debug, Clone, Resource)]
@@ -14,6 +18,16 @@ pub struct ScenarioMap {
     pub width: usize,
     pub height: usize,
     pub tiles: Vec<Tile>,
+}
+
+#[derive(Default, Debug, Clone, Resource)]
+pub struct SelectedCards {
+    pub player: Vec<String>,
+    pub enemy: Vec<String>,
+}
+
+fn setup_selected_cards(mut commands: Commands) {
+    commands.insert_resource(SelectedCards::default());
 }
 
 #[derive(Debug, Clone, Default)]

@@ -19,6 +19,7 @@ impl Plugin for ScenePlugin {
 pub enum SceneState {
     None,
     Setup,
+    RoundStart,
 }
 
 fn setup_scene(mut scene_state: ResMut<State<SceneState>>) {
