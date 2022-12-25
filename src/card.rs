@@ -12,6 +12,31 @@ use crate::{
 pub struct Card {
     pub id: String,
     pub name: String,
+    pub actions: Vec<CardAction>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum CardAction {
+    Move(usize),
+}
+
+#[derive(Debug, Clone)]
+pub enum Targetable {
+    Path { max_distance: usize },
+}
+
+impl CardAction {
+    pub fn describe(&self) -> String {
+        match self {
+            CardAction::Move(d) => format!("Move {d} squares"),
+        }
+    }
+
+    pub fn target(&self) -> Targetable {
+        match self {
+            CardAction::Move(d) => Targetable::Path { max_distance: *d },
+        }
+    }
 }
 
 pub struct CardPlugin;
@@ -32,7 +57,11 @@ impl Card {
     }
 
     pub fn description(&self) -> String {
-        format!("Describing {}", self.name)
+        if self.actions.len() > 0 {
+            self.actions.iter().map(|c| c.describe()).collect::<Vec<_>>().join("\n")
+        } else {
+            format!("Describing {}", self.name)
+        }
     }
 }
 

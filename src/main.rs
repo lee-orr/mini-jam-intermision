@@ -10,6 +10,7 @@ mod card;
 mod game_state;
 mod menu;
 mod overworld;
+mod player_turn;
 mod scenario;
 mod scene;
 mod setup_phase;
@@ -22,6 +23,7 @@ use bevy_asset_loader::prelude::{LoadingState, LoadingStateAppExt};
 use bevy_egui::EguiPlugin;
 #[cfg(feature = "dev")]
 use bevy_inspector_egui::*;
+use bevy_sequential_actions::SequentialActionsPlugin;
 use bevy_turborand::RngPlugin;
 
 use card::CardPlugin;
@@ -53,7 +55,8 @@ fn main() {
     .add_plugin(EguiPlugin)
     .add_plugin(LookTransformPlugin)
     .add_plugin(OrbitCameraPlugin::default())
-    .add_plugin(RngPlugin::default());
+    .add_plugin(RngPlugin::default())
+    .add_plugin(SequentialActionsPlugin);
 
     #[cfg(feature = "dev")]
     app.add_plugin(WorldInspectorPlugin::new());

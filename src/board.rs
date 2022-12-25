@@ -1,9 +1,13 @@
 use bevy::prelude::*;
 
+use bevy_sequential_actions::{
+    Action, ActionCommands, ActionFinished, ActionsBundle, ActionsProxy, ModifyActions, StopReason,
+};
 use bevy_turborand::GlobalRng;
 use smooth_bevy_cameras::LookTransform;
 
-use crate::scenario::ScenarioMap;
+use crate::game_state::AppState;
+use crate::scenario::{Actor, AnimateActionsEvents, ScenarioMap};
 use crate::{scene::SceneState, story::*};
 
 pub struct BoardPlugin;
@@ -20,6 +24,12 @@ impl Plugin for BoardPlugin {
                 SystemSet::on_enter(SceneState::Setup)
                     .with_system(generate_board)
                     .with_system(set_camera),
+            )
+            .add_system_set(
+                SystemSet::on_update(AppState::Scene)
+                    .with_system(animate_actions)
+                    .with_system(wait_system)
+                    .with_system(continue_system),
             );
     }
 }
@@ -106,7 +116,7 @@ fn generate_board(
         let top = -1. * scenario_map.height as f32 / 2.;
 
         commands
-            .spawn((SpatialBundle::default(), Board))
+            .spawn((SpatialBundle::default(), Board, ActionsBundle::new()))
             .with_children(|parent| {
                 parent.spawn(DirectionalLightBundle {
                     transform: Transform::from_rotation(Quat::from_euler(
@@ -200,5 +210,98 @@ fn reset_camera(mut query: Query<&mut LookTransform>) {
         bevy::log::info!("Setting camera pos");
         item.eye = eye;
         item.target = target;
+    }
+}
+
+fn animate_actions(
+    mut commands: Commands,
+    board: Query<Entity, With<Board>>,
+    mut events: EventReader<AnimateActionsEvents>,
+) {
+    if let Ok(agent) = board.get_single() {
+        let mut actions = commands.actions(agent);
+        for event in events.iter() {
+            match event {
+                AnimateActionsEvents::Wait(s) => {
+                    actions.add(WaitAction {
+                        duration: *s,
+                        current: None,
+                    });
+                }
+                AnimateActionsEvents::Continue(actor) => {
+                    actions.add(ContinueAction(actor.clone()));
+                }
+            }
+        }
+    }
+}
+
+pub struct WaitAction {
+    duration: f32,
+    current: Option<f32>,
+}
+
+impl Action for WaitAction {
+    fn on_start(&mut self, agent: Entity, world: &mut World, _commands: &mut ActionCommands) {
+        // Take current duration (if paused), or use full duration
+        let duration = self.current.take().unwrap_or(self.duration);
+
+        // Run the wait system on the agent
+        world.entity_mut(agent).insert(Wait(duration));
+    }
+
+    fn on_stop(&mut self, agent: Entity, world: &mut World, reason: StopReason) {
+        // Remove the wait component from the agent
+        let wait = world.entity_mut(agent).remove::<Wait>();
+
+        // Store current duration when paused
+        if let StopReason::Paused = reason {
+            self.current = Some(wait.unwrap().0);
+        }
+    }
+}
+
+#[derive(Component)]
+struct Wait(f32);
+
+fn wait_system(mut wait_q: Query<(&mut Wait, &mut ActionFinished)>, time: Res<Time>) {
+    for (mut wait, mut finished) in wait_q.iter_mut() {
+        wait.0 -= time.delta_seconds();
+
+        // Confirm finished state every frame
+        if wait.0 <= 0.0 {
+            finished.confirm_and_reset();
+        }
+    }
+}
+
+pub struct ContinueAction(Actor);
+
+impl Action for ContinueAction {
+    fn on_start(&mut self, agent: Entity, world: &mut World, _commands: &mut ActionCommands) {
+        // Run the wait system on the agent
+        world.entity_mut(agent).insert(Continue(self.0.clone()));
+    }
+
+    fn on_stop(&mut self, agent: Entity, world: &mut World, _reason: StopReason) {
+        // Remove the wait component from the agent
+        let _cont = world.entity_mut(agent).remove::<Continue>();
+    }
+}
+
+#[derive(Component)]
+struct Continue(Actor);
+
+fn continue_system(
+    mut wait_q: Query<(&mut Continue, &mut ActionFinished)>,
+    mut scene_state: ResMut<State<SceneState>>,
+) {
+    for (_cont, mut finished) in wait_q.iter_mut() {
+        finished.confirm_and_reset();
+        let _ = scene_state.set(SceneState::PlayerTurn);
+        // match cont.0 {
+        //     Actor::Player => {let _ = scene_state.set(SceneState::PlayerTurn)},
+        //     Actor::Enemy(_) => {},
+        // }
     }
 }

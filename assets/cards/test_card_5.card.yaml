@@ -1,2 +1,4 @@
 id: test-card-5
 name: Test Card 5
+actions:
+  - !Move 1

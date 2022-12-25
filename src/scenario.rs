@@ -1,16 +1,27 @@
-use bevy::prelude::*;
-use bevy_turborand::DelegatedRng;
+use bevy::{prelude::*, utils::HashMap};
+use bevy_turborand::{DelegatedRng, GlobalRng};
 
-use crate::{scene::SceneState, story::Scenario};
+use crate::{card::Cards, game_state::AppState, scene::SceneState, story::Scenario};
 
 pub struct ScenarioPlugin;
 
 impl Plugin for ScenarioPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.init_resource::<SelectedCards>().add_system_set(
-            SystemSet::on_enter(SceneState::Setup).with_system(setup_selected_cards),
-        );
+        app.add_event::<CardPlayedEvent>()
+            .add_event::<AnimateActionsEvents>()
+            .init_resource::<ActorResources>()
+            .add_system_set(
+                SystemSet::on_enter(SceneState::Setup).with_system(setup_actor_resources),
+            )
+            .add_system_set(SystemSet::on_update(AppState::Scene).with_system(process_card_events));
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct CardPlayedEvent {
+    pub actor: Actor,
+    pub card: String,
+    pub targets: Vec<(usize, usize, usize)>,
 }
 
 #[derive(Debug, Clone, Resource)]
@@ -20,14 +31,65 @@ pub struct ScenarioMap {
     pub tiles: Vec<Tile>,
 }
 
-#[derive(Default, Debug, Clone, Resource)]
-pub struct SelectedCards {
-    pub player: Vec<String>,
-    pub enemy: Vec<String>,
+#[derive(Component, Debug, Clone, PartialEq, Eq, Hash)]
+pub enum Actor {
+    Player,
+    Enemy(usize),
 }
 
-fn setup_selected_cards(mut commands: Commands) {
-    commands.insert_resource(SelectedCards::default());
+#[derive(Default, Debug, Clone)]
+pub struct ActorResource {
+    pub hand: Vec<String>,
+    pub used: Vec<String>,
+    pub discarded: Vec<String>,
+    pub health: usize,
+}
+
+#[derive(Default, Debug, Clone, Resource)]
+pub struct ActorResources {
+    pub resources: HashMap<Actor, ActorResource>,
+}
+
+fn setup_actor_resources(
+    mut commands: Commands,
+    cards: Res<Cards>,
+    mut global_rng: ResMut<GlobalRng>,
+) {
+    let cards = cards.cards.iter().collect::<Vec<_>>();
+    let num_cards = cards.len();
+
+    let mut selected = Vec::with_capacity(3);
+
+    for _i in 0..3 {
+        let mut next = global_rng.usize(0..num_cards);
+        while selected.contains(&next) {
+            next = global_rng.usize(0..num_cards);
+        }
+        selected.push(next);
+    }
+
+    let selected = selected
+        .iter()
+        .filter_map(|i| cards.get(*i))
+        .map(|(id, _)| id.to_string())
+        .collect::<Vec<_>>();
+
+    let resoures = (0..5)
+        .map(|i| {
+            (
+                Actor::Enemy(i),
+                ActorResource {
+                    hand: selected.clone(),
+                    health: 2,
+                    ..Default::default()
+                },
+            )
+        })
+        .collect();
+
+    commands.insert_resource(ActorResources {
+        resources: resoures,
+    });
 }
 
 #[derive(Debug, Clone, Default)]
@@ -138,4 +200,43 @@ fn random_place_tile<T: DelegatedRng>(
             tile.tag = tag;
         }
     }
+}
+
+fn process_card_events(
+    mut events: EventReader<CardPlayedEvent>,
+    _map: Option<ResMut<ScenarioMap>>,
+    mut resources: Option<ResMut<ActorResources>>,
+    _cards: Res<Cards>,
+    mut scene_state: ResMut<State<SceneState>>,
+    mut animate: EventWriter<AnimateActionsEvents>,
+) {
+    let mut is_processing = false;
+    for CardPlayedEvent {
+        actor,
+        card,
+        targets: _,
+    } in events.iter()
+    {
+        is_processing = true;
+        if let Some(mut resources) = resources.as_mut() {
+            if let Some(actor_resources) = resources.resources.get_mut(actor) {
+                if actor_resources.hand.contains(card) {
+                    actor_resources.hand.retain(|c| c != card);
+                    actor_resources.used.push(card.clone());
+                }
+            }
+        }
+    }
+
+    if is_processing {
+        let _ = scene_state.set(SceneState::Processing);
+        animate.send(AnimateActionsEvents::Wait(1.));
+        animate.send(AnimateActionsEvents::Continue(Actor::Player));
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum AnimateActionsEvents {
+    Wait(f32),
+    Continue(Actor),
 }

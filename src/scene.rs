@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 
-use crate::{board::*, game_state::AppState, scenario::*, setup_phase::*};
+use crate::{
+    board::*, game_state::AppState, player_turn::PlayerTurnPlugin, scenario::*, setup_phase::*,
+};
 
 pub struct ScenePlugin;
 
@@ -10,6 +12,7 @@ impl Plugin for ScenePlugin {
             .add_plugin(ScenarioPlugin)
             .add_plugin(BoardPlugin)
             .add_plugin(SetupPhasePlugin)
+            .add_plugin(PlayerTurnPlugin)
             .add_system_set(SystemSet::on_enter(AppState::Scene).with_system(setup_scene))
             .add_system_set(SystemSet::on_exit(AppState::Scene).with_system(end_scene));
     }
@@ -19,7 +22,9 @@ impl Plugin for ScenePlugin {
 pub enum SceneState {
     None,
     Setup,
-    RoundStart,
+    PlayerTurn,
+    EnemyTurn,
+    Processing,
 }
 
 fn setup_scene(mut scene_state: ResMut<State<SceneState>>) {

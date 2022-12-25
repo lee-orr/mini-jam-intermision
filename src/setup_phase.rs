@@ -1,4 +1,11 @@
-use crate::{assets, card::*, scenario::SelectedCards, scene::SceneState, story::*, ui::*};
+use crate::{
+    assets,
+    card::*,
+    scenario::{Actor, ActorResource, ActorResources},
+    scene::SceneState,
+    story::*,
+    ui::*,
+};
 use bevy::prelude::*;
 
 pub struct SetupPhasePlugin;
@@ -116,7 +123,7 @@ fn click_event(
     mut events: EventReader<ButtonClickEvent>,
     cards: Query<&CardUI>,
     mut scene_state: ResMut<State<SceneState>>,
-    mut selected_cards: ResMut<SelectedCards>,
+    mut actor_resources: ResMut<ActorResources>,
 ) {
     for event in events.iter() {
         if event.0 == "setup-complete" {
@@ -131,8 +138,15 @@ fn click_event(
                 })
                 .collect();
 
-            selected_cards.player = selected;
-            let _ = scene_state.set(SceneState::RoundStart);
+            actor_resources.resources.insert(
+                Actor::Player,
+                ActorResource {
+                    hand: selected,
+                    health: 5,
+                    ..Default::default()
+                },
+            );
+            let _ = scene_state.set(SceneState::PlayerTurn);
         }
     }
 }
