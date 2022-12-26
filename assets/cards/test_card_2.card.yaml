@@ -1,5 +1,8 @@
 id: test-card-2
 name: Test Card 2
 actions:
-  - !Move 3
+  - !Move 2
+  - !Attack
+    damage: 1
+    range: 1
 tier: 0

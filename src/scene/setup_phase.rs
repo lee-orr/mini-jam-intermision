@@ -145,6 +145,7 @@ fn click_event(
                 ActorResource {
                     hand: selected,
                     health: 5,
+                    max_health: 5,
                     ..Default::default()
                 },
             );

@@ -17,6 +17,7 @@ pub enum AnimateActionsEvents {
     Continue(Actor),
     SelectTargets(TargetSelection),
     Move(Actor, ActorPosition),
+    Attack(Actor, ActorPosition, usize),
     SetTurnProcess(CurrentTurnProcess),
 }
 
@@ -78,6 +79,7 @@ pub struct ActorResource {
     pub used: Vec<String>,
     pub discarded: Vec<String>,
     pub health: usize,
+    pub max_health: usize,
 }
 
 #[derive(Default, Debug, Clone, Resource)]
@@ -97,4 +99,9 @@ pub enum GoalStatus {
     Hidden,
     Active,
     Completed,
+}
+
+#[derive(Debug, Clone)]
+pub enum AdjustActorEvent {
+    Damage(Actor, usize),
 }

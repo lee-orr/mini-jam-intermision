@@ -22,6 +22,7 @@ impl Plugin for ScenarioPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_event::<CardPlayedEvent>()
             .add_event::<AnimateActionsEvents>()
+            .add_event::<AdjustActorEvent>()
             .init_resource::<ActorResources>()
             .insert_resource(CurrentTurnProcess::None)
             .add_system_set(SystemSet::on_enter(SceneState::Setup).with_system(setup_scenario))
@@ -34,7 +35,8 @@ impl Plugin for ScenarioPlugin {
                     .with_system(process_card_events)
                     .with_system(next_turn_ready)
                     .with_system(process_card_action)
-                    .with_system(apply_action_to_targets),
+                    .with_system(apply_action_to_targets)
+                    .with_system(apply_effects_to_actors),
             );
     }
 }
@@ -72,6 +74,7 @@ fn setup_scenario(
                     ActorResource {
                         hand: selected.clone(),
                         health: 2,
+                        max_health: 2,
                         ..Default::default()
                     },
                 )
@@ -360,6 +363,12 @@ fn apply_action_to_targets(
                         ));
                     }
                 }
+                crate::card::CardAction::Attack { damage, range: _ } => {
+                    if let Some(position) = targets.first() {
+                        animate.send(AnimateActionsEvents::Attack(*actor, 
+                            ActorPosition(position.0, position.1), *damage));
+                    }
+                },
             }
         }
 
@@ -375,6 +384,26 @@ fn apply_action_to_targets(
             animate.send(AnimateActionsEvents::SetTurnProcess(
                 CurrentTurnProcess::CardActionTriggered(*actor, card.clone(), next_action),
             ));
+        }
+    }
+}
+
+fn apply_effects_to_actors(resources: Option<ResMut<ActorResources>>, mut events: EventReader<AdjustActorEvent>) {
+    if let Some(mut resources) = resources {
+        for event in events.iter() {
+            match event {
+                AdjustActorEvent::Damage(actor, damage) => {
+                    if let Some(mut res) = resources.resources.get_mut(actor) {
+                        res.health = res.health.checked_sub(*damage).unwrap_or_default();
+                        info!("{} Damage Applied to {:?}", *damage, &actor);
+                        if res.health == 0 {
+                            info!("{:?} is Dead!", &actor);
+                            resources.turn_order = resources.turn_order.iter().filter_map(|a| if a != actor { Some(a.clone())} else { None }).collect()
+                        }
+                    }
+                },
+                _ => {}
+            }
         }
     }
 }

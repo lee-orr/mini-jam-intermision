@@ -4,8 +4,9 @@ mod move_action;
 mod selection_actions;
 mod set_turn_process_action;
 mod wait_action;
+mod attack_action;
 
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::HashMap};
 
 use bevy_sequential_actions::{ActionsBundle, ActionsProxy, ModifyActions};
 
@@ -13,7 +14,7 @@ use smooth_bevy_cameras::LookTransform;
 
 use super::scenario::{
     scenario_map::{self, *},
-    Actor, ActorPosition, AnimateActionsEvents, Goal, GoalStatus,
+    Actor, ActorPosition, AnimateActionsEvents, Goal, GoalStatus, types::{AdjustActorEvent, ActorResources},
 };
 use crate::game_state::AppState;
 use crate::scene::SceneState;
@@ -57,8 +58,10 @@ impl Plugin for BoardPlugin {
                     .with_system(process_selection_events)
                     .with_system(set_selection)
                     .with_system(move_action::move_system)
+                    .with_system(attack_action::attack_system)
                     .with_system(set_turn_process_system)
-                    .with_system(draw_active_goal),
+                    .with_system(draw_active_goal)
+                    .with_system(apply_changes_to_actors),
             );
     }
 }
@@ -244,6 +247,14 @@ fn animate_actions(
                 AnimateActionsEvents::SetTurnProcess(p) => {
                     actions.add(set_turn_process_action::SetTurnProcessAction(p.clone()));
                 }
+                AnimateActionsEvents::Attack(actor, target, damage) => {
+                    actions.add(attack_action::AttackAction {
+                        actor: *actor,
+                        target: *target,
+                        damage: *damage,
+                        duration: 0.5
+                    });
+                },
             }
         }
     }
@@ -262,5 +273,17 @@ fn draw_active_goal(
         }
         .clone();
         commands.entity(entity).insert(material);
+    }
+}
+
+fn apply_changes_to_actors(mut commands: Commands, query: Query<(&Actor, Entity)>, resources: Res<ActorResources>,
+assets: Res<BoardAssets>,) {
+    if !resources.is_changed() {
+        return;
+    }
+    for (actor, entity) in query.iter() {
+        if !resources.turn_order.contains(actor) {
+            commands.entity(entity).insert(assets.dead_character_mat.clone()).remove::<Actor>();
+        }
     }
 }

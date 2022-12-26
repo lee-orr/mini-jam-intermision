@@ -19,17 +19,20 @@ pub struct Card {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum CardAction {
     Move(usize),
+    Attack { damage: usize, range: usize },
 }
 
 #[derive(Debug, Clone)]
 pub enum Targetable {
     Path { max_distance: usize },
+    Creature { max_distance: usize },
 }
 
 impl Targetable {
     pub fn num_targets(&self) -> usize {
         match self {
             Targetable::Path { max_distance: _ } => 1,
+            Self::Creature { max_distance: _ }=> 1
         }
     }
 }
@@ -38,12 +41,14 @@ impl CardAction {
     pub fn describe(&self) -> String {
         match self {
             CardAction::Move(d) => format!("Move {d} squares"),
+            CardAction::Attack { damage, range } => format!("Attack for {damage} at range {range}"),
         }
     }
 
     pub fn target(&self) -> Targetable {
         match self {
             CardAction::Move(d) => Targetable::Path { max_distance: *d },
+            CardAction::Attack { damage, range } => Targetable::Creature { max_distance: *range },
         }
     }
 }

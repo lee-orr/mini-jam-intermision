@@ -2,5 +2,7 @@ id: test-card
 name: Test Card
 actions:
   - !Move 2
-  - !Move 3
+  - !Attack
+    damage: 2
+    range: 1
 tier: 1
