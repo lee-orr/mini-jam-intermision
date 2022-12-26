@@ -28,7 +28,7 @@ use game_state::AppState;
 use menu::MenuPlugin;
 use overworld::OverworldPlugin;
 
-use scene::ScenePlugin;
+use scene::{board::board_assets::BoardAssets, ScenePlugin};
 use smooth_bevy_cameras::{
     controllers::orbit::{OrbitCameraBundle, OrbitCameraController, OrbitCameraPlugin},
     LookTransformPlugin,
@@ -72,7 +72,8 @@ fn main() {
                 .with_dynamic_collections::<StandardDynamicAssetCollection>(vec![
                     "dynamic_assets.assets",
                 ])
-                .with_collection::<assets::Assets>(),
+                .with_collection::<assets::Assets>()
+                .with_collection::<BoardAssets>(),
         )
         .add_startup_system(setup)
         .run();

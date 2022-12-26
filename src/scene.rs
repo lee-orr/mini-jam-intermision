@@ -1,4 +1,4 @@
-mod board;
+pub mod board;
 mod intermission_phase;
 mod player_turn;
 mod scenario;

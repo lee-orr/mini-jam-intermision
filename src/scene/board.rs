@@ -1,5 +1,5 @@
 mod attack_action;
-mod board_assets;
+pub mod board_assets;
 mod continue_action;
 mod move_action;
 mod selection_actions;
@@ -30,43 +30,42 @@ pub struct BoardPlugin;
 
 impl Plugin for BoardPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_startup_system(board_assets::startup)
-            .add_system_set(
-                SystemSet::on_enter(SceneState::None)
-                    .with_system(clear_board)
-                    .with_system(reset_camera),
-            )
-            .add_system_set(
-                SystemSet::on_enter(SceneState::Succeeded)
-                    .with_system(clear_board)
-                    .with_system(reset_camera),
-            )
-            .add_system_set(
-                SystemSet::on_enter(SceneState::Failed)
-                    .with_system(clear_board)
-                    .with_system(reset_camera),
-            )
-            .add_system_set(
-                SystemSet::on_update(SceneState::Setup)
-                    .with_system(generate_board)
-                    .with_system(set_camera),
-            )
-            .add_system_set(
-                SystemSet::on_update(AppState::Scene)
-                    .with_system(animate_actions)
-                    .with_system(wait_action::wait_system)
-                    .with_system(continue_action::continue_system)
-                    .with_system(setup_selectable)
-                    .with_system(process_selection_events)
-                    .with_system(set_selection)
-                    .with_system(move_action::move_system)
-                    .with_system(attack_action::attack_system)
-                    .with_system(stun_action::stun_system)
-                    .with_system(set_turn_process_system)
-                    .with_system(draw_active_goal)
-                    .with_system(apply_changes_to_actors)
-                    .with_system(react_to_actor_events),
-            );
+        app.add_system_set(
+            SystemSet::on_enter(SceneState::None)
+                .with_system(clear_board)
+                .with_system(reset_camera),
+        )
+        .add_system_set(
+            SystemSet::on_enter(SceneState::Succeeded)
+                .with_system(clear_board)
+                .with_system(reset_camera),
+        )
+        .add_system_set(
+            SystemSet::on_enter(SceneState::Failed)
+                .with_system(clear_board)
+                .with_system(reset_camera),
+        )
+        .add_system_set(
+            SystemSet::on_update(SceneState::Setup)
+                .with_system(generate_board)
+                .with_system(set_camera),
+        )
+        .add_system_set(
+            SystemSet::on_update(AppState::Scene)
+                .with_system(animate_actions)
+                .with_system(wait_action::wait_system)
+                .with_system(continue_action::continue_system)
+                .with_system(setup_selectable)
+                .with_system(process_selection_events)
+                .with_system(set_selection)
+                .with_system(move_action::move_system)
+                .with_system(attack_action::attack_system)
+                .with_system(stun_action::stun_system)
+                .with_system(set_turn_process_system)
+                .with_system(draw_active_goal)
+                .with_system(apply_changes_to_actors)
+                .with_system(react_to_actor_events),
+        );
     }
 }
 
@@ -115,10 +114,9 @@ fn generate_board(
                 for tile in scenario_map.tiles.iter() {
                     let pos = (tile.pos.0 as f32, tile.pos.1 as f32);
 
-                    let (floor_material, goal_id) = match tile.tag {
-                        scenario_map::TileTag::Start => (assets.start_point_mat.clone(), None),
-                        scenario_map::TileTag::Target(id) => (assets.tile_mat.clone(), Some(id)),
-                        _ => (assets.tile_mat.clone(), None),
+                    let goal_id = match tile.tag {
+                        scenario_map::TileTag::Target(id) => Some(id),
+                        _ => None,
                     };
 
                     match tile.tile_type {
@@ -126,8 +124,8 @@ fn generate_board(
                         scenario_map::TileType::Floor => {
                             let mut tile = parent.spawn(PbrBundle {
                                 mesh: assets.tile.clone(),
-                                material: floor_material,
-                                transform: Transform::from_xyz(pos.0, -0.1, pos.1),
+                                material: assets.tile_mat.clone(),
+                                transform: Transform::from_xyz(pos.0, 0., pos.1),
                                 ..Default::default()
                             });
                             if let Some(goal_id) = goal_id {
@@ -144,16 +142,16 @@ fn generate_board(
                         TileType::Obstacle => {
                             parent.spawn(PbrBundle {
                                 mesh: assets.obstacle.clone(),
-                                material: floor_material,
-                                transform: Transform::from_xyz(pos.0, -0.1, pos.1),
+                                material: assets.obstacle_mat.clone(),
+                                transform: Transform::from_xyz(pos.0, 0., pos.1),
                                 ..Default::default()
                             });
                         }
                         TileType::Wall => {
                             parent.spawn(PbrBundle {
                                 mesh: assets.wall.clone(),
-                                material: floor_material,
-                                transform: Transform::from_xyz(pos.0, -0.1, pos.1),
+                                material: assets.wall_mat.clone(),
+                                transform: Transform::from_xyz(pos.0, 0., pos.1),
                                 ..Default::default()
                             });
                         }
@@ -165,7 +163,7 @@ fn generate_board(
                                 PbrBundle {
                                     mesh: assets.player.clone(),
                                     material: assets.player_mat.clone(),
-                                    transform: Transform::from_xyz(pos.0, 0.5, pos.1),
+                                    transform: Transform::from_xyz(pos.0, 0., pos.1),
                                     ..Default::default()
                                 },
                                 Actor::Player,
@@ -177,7 +175,7 @@ fn generate_board(
                                 PbrBundle {
                                     mesh: assets.monster.clone(),
                                     material: assets.monster_mat.clone(),
-                                    transform: Transform::from_xyz(pos.0, 0.5, pos.1),
+                                    transform: Transform::from_xyz(pos.0, 0., pos.1),
                                     ..Default::default()
                                 },
                                 actor,
