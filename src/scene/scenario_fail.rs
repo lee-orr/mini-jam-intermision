@@ -52,7 +52,7 @@ pub(crate) fn display_failure_men(
             let remaining_cards = cards
                 .cards
                 .iter()
-                .filter(|(key, _)| current_cards.contains(key))
+                .filter(|(key, _)| !current_cards.contains(key))
                 .collect::<Vec<_>>();
             let min = remaining_cards
                 .iter()

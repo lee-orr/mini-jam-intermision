@@ -59,7 +59,9 @@ pub(crate) fn attack_system(
                 }
                 if complete {
                     if pos.clone() == attack.1 {
-                        events.send(AdjustActorEvent::Damage(actor.clone(), attack.4));
+                        if actor != &attack.0 {
+                            events.send(AdjustActorEvent::Damage(actor.clone(), attack.4));
+                        }
                     }
                 }
             }

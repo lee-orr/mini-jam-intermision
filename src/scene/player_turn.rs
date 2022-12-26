@@ -26,6 +26,11 @@ fn display_playerturn_phase_menu(
     selected_cards: Res<ActorResources>,
     scenario: Res<Scenario>,
 ) {
+    
+    let player_resource = selected_cards
+    .resources
+    .get(&Actor::Player)
+    .unwrap();
     UiRoot::spawn(&mut commands, |parent| {
         parent
             .spawn(NodeBundle {
@@ -59,18 +64,17 @@ fn display_playerturn_phase_menu(
                         ..Default::default()
                     })
                     .with_children(|parent| {
-                        for id in selected_cards
-                            .resources
-                            .get(&Actor::Player)
-                            .unwrap()
-                            .hand
+                        for id in 
+                            player_resource.hand
                             .iter()
                         {
                             if let Some(card) = cards.cards.get(id) {
                                 CardUI::card(card).spawn(parent, &assets);
                             }
                         }
+                        
                     });
+                    MainText::new(format!("Health: {}/{}", player_resource.health, player_resource.max_health)).size(15.).spawn(parent, &assets);
             });
     });
 }

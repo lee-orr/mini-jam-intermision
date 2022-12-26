@@ -61,7 +61,8 @@ impl Plugin for BoardPlugin {
                     .with_system(attack_action::attack_system)
                     .with_system(set_turn_process_system)
                     .with_system(draw_active_goal)
-                    .with_system(apply_changes_to_actors),
+                    .with_system(apply_changes_to_actors)
+                    .with_system(react_to_actor_events),
             );
     }
 }
@@ -286,4 +287,8 @@ assets: Res<BoardAssets>,) {
             commands.entity(entity).insert(assets.dead_character_mat.clone()).remove::<Actor>();
         }
     }
+}
+
+fn react_to_actor_events(mut commands: Commands, query: Query<(&Actor, &Transform)>, mut events: EventReader<AdjustActorEvent>) {
+
 }
