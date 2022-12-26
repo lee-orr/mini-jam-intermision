@@ -61,6 +61,17 @@ impl Ord for Actor {
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ActorPosition(pub usize, pub usize);
 
+impl From<ActorPosition> for (usize, usize) {
+    fn from(val: ActorPosition) -> Self {
+        (val.0, val.1)
+    }
+}
+impl From<&ActorPosition> for (usize, usize) {
+    fn from(val: &ActorPosition) -> Self {
+        (val.0, val.1)
+    }
+}
+
 #[derive(Default, Debug, Clone)]
 pub struct ActorResource {
     pub hand: Vec<String>,

@@ -1,3 +1,5 @@
+use bevy::utils::HashSet;
+
 use super::*;
 
 use crate::card::Targetable;
@@ -5,16 +7,20 @@ use crate::card::Targetable;
 pub(crate) fn propose_valid_targets(
     actor: &Actor,
     targetable: &Targetable,
-    positions: &[(Actor, ActorPosition)],
+    actor_positions: &[(Actor, ActorPosition)],
     map: &scenario_map::ScenarioMap,
     _resources: &ActorResources,
 ) -> Vec<(usize, usize)> {
-    let my_position = positions
+    let my_position = actor_positions
         .iter()
         .find_map(|(a, p)| if a == actor { Some(*p) } else { None });
     match targetable {
         Targetable::Path { max_distance } => {
             if let Some(my_position) = my_position {
+                let occupied = actor_positions
+                    .iter()
+                    .map(|(_, p)| p.into())
+                    .collect::<HashSet<(usize, usize)>>();
                 let positions = map
                     .tiles
                     .iter()
@@ -25,6 +31,7 @@ pub(crate) fn propose_valid_targets(
                             None
                         }
                     })
+                    .filter(|p| !occupied.contains(p))
                     .collect::<Vec<_>>();
                 positions_within_n(&(my_position.0, my_position.1), &positions, *max_distance)
             } else {
