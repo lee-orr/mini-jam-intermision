@@ -104,6 +104,6 @@ pub fn startup(
         selector_active,
         selector_hover,
         goal_succeeded_mat,
-        dead_character_mat
+        dead_character_mat,
     });
 }

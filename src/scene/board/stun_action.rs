@@ -9,60 +9,60 @@ use bevy_sequential_actions::Action;
 
 use crate::scene::scenario::*;
 
-pub struct AttackAction {
+pub struct StunAction {
     pub(crate) target: ActorPosition,
     pub(crate) actor: Actor,
     pub(crate) duration: f32,
-    pub(crate) damage: usize,
+    pub(crate) stun_duration: usize,
 }
 
-impl Action for AttackAction {
+impl Action for StunAction {
     fn on_start(&mut self, agent: Entity, world: &mut World, _commands: &mut ActionCommands) {
         // Run the wait system on the agent
-        world.entity_mut(agent).insert(Attack(
+        world.entity_mut(agent).insert(Stun(
             self.actor,
             self.target,
             self.duration,
             None,
-            self.damage,
+            self.stun_duration,
         ));
     }
 
     fn on_stop(&mut self, agent: Entity, world: &mut World, _reason: StopReason) {
-        // Reattack the wait component from the agent
-        let _wait = world.entity_mut(agent).remove::<Attack>();
+        // Restun the wait component from the agent
+        let _wait = world.entity_mut(agent).remove::<Stun>();
     }
 }
 
 #[derive(Component)]
-pub(crate) struct Attack(Actor, ActorPosition, f32, Option<f32>, usize);
+pub(crate) struct Stun(Actor, ActorPosition, f32, Option<f32>, usize);
 
-pub(crate) fn attack_system(
-    mut attack_q: Query<(&mut Attack, &mut ActionFinished)>,
+pub(crate) fn stun_system(
+    mut stun_q: Query<(&mut Stun, &mut ActionFinished)>,
     mut actors: Query<(&Actor, &ActorPosition, &mut Transform)>,
     mut events: EventWriter<AdjustActorEvent>,
     time: Res<Time>,
 ) {
-    for (mut attack, mut finished) in attack_q.iter_mut() {
-        if attack.3.is_none() {
-            attack.3 = Some(time.elapsed_seconds());
+    for (mut stun, mut finished) in stun_q.iter_mut() {
+        if stun.3.is_none() {
+            stun.3 = Some(time.elapsed_seconds());
         }
-        if let Some(start) = attack.3 {
+        if let Some(start) = stun.3 {
             let elapsed = time.elapsed_seconds() - start;
-            let complete = elapsed >= attack.2;
+            let complete = elapsed >= stun.2;
             if complete {
                 finished.confirm_and_reset();
             }
             for (actor, pos, mut transform) in actors.iter_mut() {
-                if actor == &attack.0 {
+                if actor == &stun.0 {
                     if complete {
                         transform.scale = Vec3::splat(1.);
                     } else {
-                        transform.scale = Vec3::splat(1. + (elapsed / attack.2) * 0.5);
+                        transform.scale = Vec3::splat(1. + (elapsed / stun.2) * 0.5);
                     }
                 }
-                if complete && *pos == attack.1 && actor != &attack.0 {
-                    events.send(AdjustActorEvent::Damage(*actor, attack.4));
+                if complete && *pos == stun.1 && actor != &stun.0 {
+                    events.send(AdjustActorEvent::Stun(*actor, stun.4));
                 }
             }
         }

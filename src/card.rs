@@ -20,6 +20,7 @@ pub struct Card {
 pub enum CardAction {
     Move(usize),
     Attack { damage: usize, range: usize },
+    Stun { range: usize, duration: usize },
 }
 
 #[derive(Debug, Clone)]
@@ -32,7 +33,7 @@ impl Targetable {
     pub fn num_targets(&self) -> usize {
         match self {
             Targetable::Path { max_distance: _ } => 1,
-            Self::Creature { max_distance: _ }=> 1
+            Self::Creature { max_distance: _ } => 1,
         }
     }
 }
@@ -42,13 +43,21 @@ impl CardAction {
         match self {
             CardAction::Move(d) => format!("Move {d} squares"),
             CardAction::Attack { damage, range } => format!("Attack for {damage} at range {range}"),
+            CardAction::Stun { range, duration } => {
+                format!("Stun an enemy at {range} for {duration} turns")
+            }
         }
     }
 
     pub fn target(&self) -> Targetable {
         match self {
             CardAction::Move(d) => Targetable::Path { max_distance: *d },
-            CardAction::Attack { damage, range } => Targetable::Creature { max_distance: *range },
+            CardAction::Attack { damage: _, range } => Targetable::Creature {
+                max_distance: *range,
+            },
+            CardAction::Stun { range, duration: _ } => Targetable::Creature {
+                max_distance: *range,
+            },
         }
     }
 }

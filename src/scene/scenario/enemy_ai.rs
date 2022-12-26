@@ -34,15 +34,21 @@ pub(crate) fn choose_enemy_card(
     mut events: EventWriter<CardPlayedEvent>,
     mut global_rng: ResMut<GlobalRng>,
     current_turn_process: Option<Res<CurrentTurnProcess>>,
-    resources: Option<Res<ActorResources>>,
+    resources: Option<ResMut<ActorResources>>,
     _cards: Res<Cards>,
 ) {
     info!("Choosing enemy card...");
-    if let (Some(process), Some(resources)) = (current_turn_process, resources) {
+    if let (Some(process), Some(mut resources)) = (current_turn_process, resources) {
         info!("Process can continue");
         match *process {
             CurrentTurnProcess::Thinking(actor) => {
-                if let Some(res) = resources.resources.get(&actor) {
+                if let Some(res) = resources.resources.get_mut(&actor) {
+                    if res.stun_duration > 0 {
+                        res.stun_duration = res.stun_duration.checked_sub(1).unwrap_or_default();
+                        info!("Stunned");
+                        commands.insert_resource(CurrentTurnProcess::Done(actor));
+                        return;
+                    }
                     let hand = &res.hand;
                     let range = 0..hand.len();
                     let selected = global_rng.usize(range);

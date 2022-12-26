@@ -167,6 +167,7 @@ fn next_turn_ready(
     let mut scenario = scenario.unwrap();
 
     if let CurrentTurnProcess::Done(actor) = *current_turn_process {
+        let _ = scene_state.set(SceneState::Processing);
         let positions = position_query.iter().collect::<Vec<_>>();
 
         let mut current_goal_id = 0;
@@ -206,10 +207,10 @@ fn next_turn_ready(
 
             if let ScenarioState::Success(_) = state {
                 info!("Scenario Complete");
-                let _ = scene_state.set(SceneState::Succeeded);
+                let _ = scene_state.overwrite_set(SceneState::Succeeded);
                 return;
             } else {
-                let _ = scene_state.set(SceneState::Intermission);
+                let _ = scene_state.overwrite_set(SceneState::Intermission);
                 return;
             }
         }
@@ -218,7 +219,7 @@ fn next_turn_ready(
         if failure {
             info!("Failed...");
             scenario.fail();
-            let _ = scene_state.set(SceneState::Failed);
+            let _ = scene_state.overwrite_set(SceneState::Failed);
             return;
         }
 
@@ -365,10 +366,22 @@ fn apply_action_to_targets(
                 }
                 crate::card::CardAction::Attack { damage, range: _ } => {
                     if let Some(position) = targets.first() {
-                        animate.send(AnimateActionsEvents::Attack(*actor, 
-                            ActorPosition(position.0, position.1), *damage));
+                        animate.send(AnimateActionsEvents::Attack(
+                            *actor,
+                            ActorPosition(position.0, position.1),
+                            *damage,
+                        ));
                     }
-                },
+                }
+                crate::card::CardAction::Stun { range: _, duration } => {
+                    if let Some(position) = targets.first() {
+                        animate.send(AnimateActionsEvents::Stun(
+                            *actor,
+                            ActorPosition(position.0, position.1),
+                            *duration,
+                        ));
+                    }
+                }
             }
         }
 
@@ -388,7 +401,10 @@ fn apply_action_to_targets(
     }
 }
 
-fn apply_effects_to_actors(resources: Option<ResMut<ActorResources>>, mut events: EventReader<AdjustActorEvent>) {
+fn apply_effects_to_actors(
+    resources: Option<ResMut<ActorResources>>,
+    mut events: EventReader<AdjustActorEvent>,
+) {
     if let Some(mut resources) = resources {
         for event in events.iter() {
             match event {
@@ -398,11 +414,21 @@ fn apply_effects_to_actors(resources: Option<ResMut<ActorResources>>, mut events
                         info!("{} Damage Applied to {:?}", *damage, &actor);
                         if res.health == 0 {
                             info!("{:?} is Dead!", &actor);
-                            resources.turn_order = resources.turn_order.iter().filter_map(|a| if a != actor { Some(a.clone())} else { None }).collect()
+                            resources.turn_order = resources
+                                .turn_order
+                                .iter()
+                                .filter_map(|a| if a != actor { Some(*a) } else { None })
+                                .collect()
                         }
                     }
-                },
-                _ => {}
+                }
+                AdjustActorEvent::Stun(actor, duration) => {
+                    if let Some(mut res) = resources.resources.get_mut(actor) {
+                        if res.stun_duration < *duration {
+                            res.stun_duration = *duration;
+                        }
+                    }
+                }
             }
         }
     }

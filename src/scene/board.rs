@@ -1,12 +1,13 @@
+mod attack_action;
 mod board_assets;
 mod continue_action;
 mod move_action;
 mod selection_actions;
 mod set_turn_process_action;
+mod stun_action;
 mod wait_action;
-mod attack_action;
 
-use bevy::{prelude::*, utils::HashMap};
+use bevy::prelude::*;
 
 use bevy_sequential_actions::{ActionsBundle, ActionsProxy, ModifyActions};
 
@@ -14,7 +15,8 @@ use smooth_bevy_cameras::LookTransform;
 
 use super::scenario::{
     scenario_map::{self, *},
-    Actor, ActorPosition, AnimateActionsEvents, Goal, GoalStatus, types::{AdjustActorEvent, ActorResources},
+    types::{ActorResources, AdjustActorEvent},
+    Actor, ActorPosition, AnimateActionsEvents, Goal, GoalStatus,
 };
 use crate::game_state::AppState;
 use crate::scene::SceneState;
@@ -59,6 +61,7 @@ impl Plugin for BoardPlugin {
                     .with_system(set_selection)
                     .with_system(move_action::move_system)
                     .with_system(attack_action::attack_system)
+                    .with_system(stun_action::stun_system)
                     .with_system(set_turn_process_system)
                     .with_system(draw_active_goal)
                     .with_system(apply_changes_to_actors)
@@ -253,9 +256,17 @@ fn animate_actions(
                         actor: *actor,
                         target: *target,
                         damage: *damage,
-                        duration: 0.5
+                        duration: 0.5,
                     });
-                },
+                }
+                AnimateActionsEvents::Stun(actor, target, stun_duration) => {
+                    actions.add(stun_action::StunAction {
+                        actor: *actor,
+                        target: *target,
+                        stun_duration: *stun_duration,
+                        duration: 0.5,
+                    });
+                }
             }
         }
     }
@@ -277,18 +288,41 @@ fn draw_active_goal(
     }
 }
 
-fn apply_changes_to_actors(mut commands: Commands, query: Query<(&Actor, Entity)>, resources: Res<ActorResources>,
-assets: Res<BoardAssets>,) {
+fn apply_changes_to_actors(
+    mut commands: Commands,
+    mut query: Query<(&Actor, Entity, &mut Transform)>,
+    resources: Res<ActorResources>,
+    assets: Res<BoardAssets>,
+) {
     if !resources.is_changed() {
         return;
     }
-    for (actor, entity) in query.iter() {
+    for (actor, entity, mut transform) in query.iter_mut() {
         if !resources.turn_order.contains(actor) {
-            commands.entity(entity).insert(assets.dead_character_mat.clone()).remove::<Actor>();
+            commands
+                .entity(entity)
+                .insert(assets.dead_character_mat.clone())
+                .remove::<Actor>();
+            transform.scale = Vec3::new(transform.scale.x, 0.2, transform.scale.z);
+            transform.translation =
+                Vec3::new(transform.translation.x, 0.1, transform.translation.z);
+        } else if let Some(res) = resources.resources.get(actor) {
+            if res.stun_duration > 0 {
+                transform.scale = Vec3::new(transform.scale.x, 0.2, transform.scale.z);
+                transform.translation =
+                    Vec3::new(transform.translation.x, 0.1, transform.translation.z);
+            } else {
+                transform.scale = Vec3::new(transform.scale.x, 1., transform.scale.z);
+                transform.translation =
+                    Vec3::new(transform.translation.x, 0.5, transform.translation.z);
+            }
         }
     }
 }
 
-fn react_to_actor_events(mut commands: Commands, query: Query<(&Actor, &Transform)>, mut events: EventReader<AdjustActorEvent>) {
-
+fn react_to_actor_events(
+    _commands: Commands,
+    _query: Query<(&Actor, &Transform)>,
+    _events: EventReader<AdjustActorEvent>,
+) {
 }

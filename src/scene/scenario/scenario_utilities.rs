@@ -40,17 +40,22 @@ pub(crate) fn propose_valid_targets(
         }
         Targetable::Creature { max_distance } => {
             if let Some(my_position) = my_position {
-                actor_positions.iter().filter_map(|(a, p)| {
-                    if p.0.abs_diff(my_position.0) <= *max_distance && p.1.abs_diff(my_position.1) <= *max_distance {
-                        Some((p.0, p.1))
-                    } else {
-                        None
-                    }
-                }).collect()
+                actor_positions
+                    .iter()
+                    .filter_map(|(_a, p)| {
+                        if p.0.abs_diff(my_position.0) <= *max_distance
+                            && p.1.abs_diff(my_position.1) <= *max_distance
+                        {
+                            Some((p.0, p.1))
+                        } else {
+                            None
+                        }
+                    })
+                    .collect()
             } else {
                 vec![]
             }
-        },
+        }
     }
 }
 

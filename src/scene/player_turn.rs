@@ -23,14 +23,10 @@ fn display_playerturn_phase_menu(
     mut commands: Commands,
     assets: Res<assets::Assets>,
     cards: Res<AvailableCards>,
-    selected_cards: Res<ActorResources>,
+    mut selected_cards: ResMut<ActorResources>,
     scenario: Res<Scenario>,
 ) {
-    
-    let player_resource = selected_cards
-    .resources
-    .get(&Actor::Player)
-    .unwrap();
+    let player_resource = selected_cards.resources.get_mut(&Actor::Player).unwrap();
     UiRoot::spawn(&mut commands, |parent| {
         parent
             .spawn(NodeBundle {
@@ -53,6 +49,15 @@ fn display_playerturn_phase_menu(
                             .spawn(parent, &assets);
                     }
                 }
+                if player_resource.stun_duration > 0 {
+                    player_resource.stun_duration = player_resource
+                        .stun_duration
+                        .checked_sub(1)
+                        .unwrap_or_default();
+                    MainText::new("You are stunned!").spawn(parent, &assets);
+                    MenuButton::Primary.spawn("stunned-continue", "Continue...", parent, &assets);
+                    return;
+                }
                 parent
                     .spawn(NodeBundle {
                         style: Style {
@@ -64,22 +69,28 @@ fn display_playerturn_phase_menu(
                         ..Default::default()
                     })
                     .with_children(|parent| {
-                        for id in 
-                            player_resource.hand
-                            .iter()
-                        {
+                        for id in player_resource.hand.iter() {
                             if let Some(card) = cards.cards.get(id) {
                                 CardUI::card(card).spawn(parent, &assets);
                             }
                         }
-                        
                     });
-                    MainText::new(format!("Health: {}/{}", player_resource.health, player_resource.max_health)).size(15.).spawn(parent, &assets);
+                MainText::new(format!(
+                    "Health: {}/{}",
+                    player_resource.health, player_resource.max_health
+                ))
+                .size(15.)
+                .spawn(parent, &assets);
             });
     });
 }
 
-fn click_event(mut events: EventReader<CardClickEvent>, mut sender: EventWriter<CardPlayedEvent>) {
+fn click_event(
+    mut events: EventReader<CardClickEvent>,
+    mut sender: EventWriter<CardPlayedEvent>,
+    mut button_event: EventReader<ButtonClickEvent>,
+    mut commands: Commands,
+) {
     for event in events.iter() {
         let played = CardPlayedEvent {
             actor: Actor::Player,
@@ -87,5 +98,10 @@ fn click_event(mut events: EventReader<CardClickEvent>, mut sender: EventWriter<
         };
 
         sender.send(played);
+    }
+    for event in button_event.iter() {
+        if event.0 == "stunned-continue" {
+            commands.insert_resource(CurrentTurnProcess::Done(Actor::Player));
+        };
     }
 }
