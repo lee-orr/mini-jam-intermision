@@ -233,10 +233,11 @@ fn clear_ui(mut commands: Commands, query: Query<Entity, With<UiRoot>>) {
 pub fn clear_ui_system_set<T: Debug + Clone + Eq + PartialEq + Hash + StateData>(
     t: T,
 ) -> SystemSet {
-
     let name = format!("Value: {:?}", &t);
-    SystemSet::on_exit(t).with_system(move |mut commands: Commands, query: Query<Entity, With<UiRoot>>| {
-        info!("Clearing for - {:?}", name);
-        clear_ui(commands, query);
-    })
+    SystemSet::on_exit(t).with_system(
+        move |commands: Commands, query: Query<Entity, With<UiRoot>>| {
+            info!("Clearing for - {:?}", name);
+            clear_ui(commands, query);
+        },
+    )
 }

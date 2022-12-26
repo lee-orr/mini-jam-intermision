@@ -48,7 +48,7 @@ fn setup_overworld(
 
     bevy::log::info!("Setup Overworld UI");
 
-     if let Some(story) = &story {
+    if let Some(story) = &story {
         commands.insert_resource(story.clone());
         if StoryPhase::Complete == story.phase {
             UiRoot::spawn(&mut commands, |parent| {

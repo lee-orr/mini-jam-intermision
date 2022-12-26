@@ -37,7 +37,7 @@ pub(crate) fn propose_valid_targets(
 pub(crate) fn positions_within_n(
     position: &(usize, usize),
     positions: &[(usize, usize)],
-    distance: usize
+    distance: usize,
 ) -> Vec<(usize, usize)> {
     let mut checked = vec![];
     let mut to_check = vec![*position];

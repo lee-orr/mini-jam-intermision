@@ -15,7 +15,7 @@ mod tracery_generator;
 mod ui;
 
 use bevy::{core_pipeline::clear_color::ClearColorConfig, prelude::*};
-use bevy_asset_loader::{prelude::*};
+use bevy_asset_loader::prelude::*;
 use bevy_egui::EguiPlugin;
 #[cfg(feature = "dev")]
 use bevy_inspector_egui::*;
