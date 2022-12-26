@@ -45,7 +45,7 @@ grammar:
     @#reach-location#
   complete:
   - |-
-    The end...
+    The end...@
   reach-location:
   - "#set-location# we must get to #location-name# - #location-description#... it's our only hope!:Ahh - #location-name#, #location-factoid#:Oh god we're stuck here...:reach-location:#location-name#"
   - "#set-location# #location-description# - #location-name# is our destination:We've made it!:Looks like we're going to need to find another way...:reach-location:#location-name#"

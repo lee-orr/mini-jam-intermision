@@ -15,7 +15,7 @@ mod tracery_generator;
 mod ui;
 
 use bevy::{core_pipeline::clear_color::ClearColorConfig, prelude::*};
-use bevy_asset_loader::prelude::{LoadingState, LoadingStateAppExt};
+use bevy_asset_loader::{prelude::*};
 use bevy_egui::EguiPlugin;
 #[cfg(feature = "dev")]
 use bevy_inspector_egui::*;
@@ -69,6 +69,9 @@ fn main() {
         .add_loading_state(
             LoadingState::new(AppState::Loading)
                 .continue_to_state(AppState::MainMenu)
+                .with_dynamic_collections::<StandardDynamicAssetCollection>(vec![
+                    "dynamic_assets.assets",
+                ])
                 .with_collection::<assets::Assets>(),
         )
         .add_startup_system(setup)

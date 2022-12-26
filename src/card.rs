@@ -13,6 +13,7 @@ pub struct Card {
     pub id: String,
     pub name: String,
     pub actions: Vec<CardAction>,
+    pub tier: usize,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -61,7 +62,7 @@ impl Plugin for CardPlugin {
 
 impl Card {
     pub fn title(&self) -> String {
-        self.name.clone()
+        format!("{} - {}", &self.tier, &self.name)
     }
 
     pub fn description(&self) -> String {
@@ -80,18 +81,34 @@ impl Card {
 #[derive(Debug, Resource, Default)]
 pub struct Cards {
     pub cards: HashMap<String, Card>,
+    pub available_cards: HashMap<String, Card>,
+}
+
+#[derive(Debug, Resource, Default)]
+pub struct AvailableCards {
+    pub cards: HashMap<String, Card>,
 }
 
 fn setup_cards(mut commands: Commands, assets: Res<assets::Assets>, card_asset: Res<Assets<Card>>) {
     let mut cards = HashMap::new();
+    let mut available_cards = HashMap::new();
     for card_handle in assets.cards.iter() {
         if let Some(card) = card_asset.get(card_handle) {
             cards.insert(card.id.clone(), card.clone());
+            if card.tier == 0 {
+                available_cards.insert(card.id.clone(), card.clone());
+            }
         }
     }
 
     bevy::log::info!("Cards: {:?}", cards);
-    commands.insert_resource(Cards { cards });
+    commands.insert_resource(AvailableCards {
+        cards: available_cards.clone(),
+    });
+    commands.insert_resource(Cards {
+        cards,
+        available_cards,
+    });
 }
 
 #[derive(Debug, Clone, Component)]

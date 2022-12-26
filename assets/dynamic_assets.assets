@@ -1,0 +1,6 @@
+({
+    "font": File ( path: "Xolonium-Regular.ttf"),
+    "story": File ( path: "test_story.trace.yaml"),
+    "cards": Files  ( paths: ["cards/test_card.card.yaml", "cards/test_card_2.card.yaml","cards/test_card_3.card.yaml","cards/test_card_4.card.yaml","cards/test_card_5.card.yaml",],
+    ),
+})

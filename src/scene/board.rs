@@ -190,7 +190,7 @@ fn set_camera(mut query: Query<&mut LookTransform>, new_board: Query<Entity, Add
     }
     let eye = Vec3::new(0., 10., 0.);
     let target = Vec3::default();
-    bevy::log::info!("Ready to play");
+    bevy::log::info!("Preparing Camera for Game");
     for mut item in query.iter_mut() {
         bevy::log::info!("Setting camera pos");
         item.eye = eye;
@@ -201,7 +201,7 @@ fn set_camera(mut query: Query<&mut LookTransform>, new_board: Query<Entity, Add
 fn reset_camera(mut query: Query<&mut LookTransform>) {
     let eye = Vec3::new(0., 15., 0.);
     let target = Vec3::default();
-    bevy::log::info!("Ready to play");
+    bevy::log::info!("Moving camera back");
     for mut item in query.iter_mut() {
         bevy::log::info!("Setting camera pos");
         item.eye = eye;

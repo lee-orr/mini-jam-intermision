@@ -30,7 +30,7 @@ fn display_setup_phase_menu(
     mut commands: Commands,
     scenario: Res<Scenario>,
     assets: Res<assets::Assets>,
-    cards: Res<Cards>,
+    cards: Res<AvailableCards>,
 ) {
     UiRoot::spawn(&mut commands, |parent| {
         parent
@@ -52,12 +52,15 @@ fn display_setup_phase_menu(
                         None
                     };
 
-                    if let Some(_current_goal) = current_goal {
+                    if let Some(current_goal) = current_goal {
                         if let Some(previous_goal) = previous_goal {
                             MainText::new(&previous_goal.success)
                                 .size(20.)
                                 .spawn(parent, &assets);
                         }
+                        MainText::new(&current_goal.description)
+                            .size(20.)
+                            .spawn(parent, &assets);
                     }
                     MainText::new("Choose your cards:").spawn(parent, &assets);
                     parent

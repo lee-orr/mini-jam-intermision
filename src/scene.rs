@@ -2,7 +2,8 @@ mod board;
 mod intermission_phase;
 mod player_turn;
 mod scenario;
-mod scenario_end_screens;
+mod scenario_fail;
+mod scenario_sucess;
 mod setup_phase;
 
 use bevy::prelude::*;
@@ -14,6 +15,8 @@ use setup_phase::*;
 
 use crate::{game_state::AppState, ui::*};
 
+use self::{scenario_fail::FailPhasePlugin, scenario_sucess::ScenarioSuccessPlugin};
+
 pub struct ScenePlugin;
 
 impl Plugin for ScenePlugin {
@@ -24,25 +27,11 @@ impl Plugin for ScenePlugin {
             .add_plugin(SetupPhasePlugin)
             .add_plugin(PlayerTurnPlugin)
             .add_plugin(IntermissionPhasePlugin)
+            .add_plugin(ScenarioSuccessPlugin)
+            .add_plugin(FailPhasePlugin)
             .add_system_set(SystemSet::on_enter(AppState::Scene).with_system(setup_scene))
             .add_system_set(SystemSet::on_exit(AppState::Scene).with_system(end_scene))
-            .add_system_set(clear_ui_system_set(AppState::Scene))
-            .add_system_set(
-                SystemSet::on_update(SceneState::Succeeded)
-                    .with_system(scenario_end_screens::check_click),
-            )
-            .add_system_set(
-                SystemSet::on_update(SceneState::Failed)
-                    .with_system(scenario_end_screens::check_click),
-            )
-            .add_system_set(
-                SystemSet::on_enter(SceneState::Succeeded)
-                    .with_system(scenario_end_screens::display_success_menu),
-            )
-            .add_system_set(
-                SystemSet::on_enter(SceneState::Failed)
-                    .with_system(scenario_end_screens::display_failure_men),
-            );
+            .add_system_set(clear_ui_system_set(AppState::Scene));
     }
 }
 

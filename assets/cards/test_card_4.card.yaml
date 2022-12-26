@@ -1,4 +1,5 @@
 id: test-card-4
 name: Test Card 4
 actions:
-  - !Move 1
+  - !Move 3
+tier: 0

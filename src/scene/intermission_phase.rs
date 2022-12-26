@@ -32,7 +32,7 @@ fn display_intermission_phase_menu(
     scenario: Res<Scenario>,
     assets: Res<assets::Assets>,
     actor_resources: Res<ActorResources>,
-    cards: Res<Cards>,
+    cards: Res<AvailableCards>,
 ) {
     info!("Displaying Intermission");
     UiRoot::spawn(&mut commands, |parent| {
@@ -58,13 +58,49 @@ fn display_intermission_phase_menu(
                         None
                     };
 
-                    if let Some(_current_goal) = current_goal {
+                    if let Some(current_goal) = current_goal {
                         if let Some(previous_goal) = previous_goal {
                             MainText::new(&previous_goal.success)
                                 .size(20.)
                                 .spawn(parent, &assets);
                         }
+                        MainText::new(&current_goal.description)
+                            .size(20.)
+                            .spawn(parent, &assets);
                     }
+
+                    let available = {
+                        let used = if let Some(player_resource) =
+                            actor_resources.resources.get(&Actor::Player)
+                        {
+                            let mut hand = player_resource.hand.clone();
+                            let mut used = player_resource.used.clone();
+                            hand.append(&mut used);
+                            hand
+                        } else {
+                            vec![]
+                        };
+
+                        cards
+                            .cards
+                            .iter()
+                            .filter(|(id, _)| !used.contains(*id))
+                            .collect::<Vec<_>>()
+                    };
+
+                    if available.is_empty() {
+                        MainText::new("No cards available...")
+                            .size(10.)
+                            .spawn(parent, &assets);
+                        MenuButton::Primary.spawn(
+                            "intermission-complete",
+                            "Continue Mission",
+                            parent,
+                            &assets,
+                        );
+                        return;
+                    }
+
                     MainText::new("Choose one card to add to your hand:").spawn(parent, &assets);
                     parent
                         .spawn(NodeBundle {
@@ -77,20 +113,7 @@ fn display_intermission_phase_menu(
                             ..Default::default()
                         })
                         .with_children(|parent| {
-                            let used = if let Some(player_resource) =
-                                actor_resources.resources.get(&Actor::Player)
-                            {
-                                let mut hand = player_resource.hand.clone();
-                                let mut used = player_resource.used.clone();
-                                hand.append(&mut used);
-                                hand
-                            } else {
-                                vec![]
-                            };
-                            for (id, card) in cards.cards.iter() {
-                                if used.contains(id) {
-                                    continue;
-                                }
+                            for (_, card) in available.iter() {
                                 CardUI::card(card).selectable().spawn(parent, &assets);
                             }
                         });

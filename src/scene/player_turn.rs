@@ -22,7 +22,7 @@ impl Plugin for PlayerTurnPlugin {
 fn display_playerturn_phase_menu(
     mut commands: Commands,
     assets: Res<assets::Assets>,
-    cards: Res<Cards>,
+    cards: Res<AvailableCards>,
     selected_cards: Res<ActorResources>,
     scenario: Res<Scenario>,
 ) {

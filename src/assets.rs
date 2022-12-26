@@ -5,10 +5,10 @@ use crate::{card::Card, tracery_generator::TraceryGenerator};
 
 #[derive(AssetCollection, Resource)]
 pub struct Assets {
-    #[asset(path = "Xolonium-Regular.ttf")]
+    #[asset(key = "font")]
     pub font: Handle<Font>,
-    #[asset(path = "test_story.trace.yaml")]
+    #[asset(key = "story")]
     pub story: Handle<TraceryGenerator>,
-    #[asset(path = "cards", collection(typed))]
+    #[asset(key = "cards", collection(typed))]
     pub cards: Vec<Handle<Card>>,
 }

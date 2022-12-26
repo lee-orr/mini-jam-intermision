@@ -159,9 +159,10 @@ impl MenuButton {
 
 pub struct UIPlugin;
 
+#[derive(Debug, Clone)]
 pub struct ButtonClickEvent(pub String, pub Entity);
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct UiRoot;
 
 impl UiRoot {
@@ -213,6 +214,7 @@ fn hoverable(
             }
             Interaction::Clicked => {
                 *background = button_type.click_color().into();
+                info!("Clicked on {} - {:?}", &name.0, &entity);
                 click_event.send(ButtonClickEvent(name.0.clone(), entity))
             }
             Interaction::None => {
@@ -231,5 +233,10 @@ fn clear_ui(mut commands: Commands, query: Query<Entity, With<UiRoot>>) {
 pub fn clear_ui_system_set<T: Debug + Clone + Eq + PartialEq + Hash + StateData>(
     t: T,
 ) -> SystemSet {
-    SystemSet::on_exit(t).with_system(clear_ui)
+
+    let name = format!("Value: {:?}", &t);
+    SystemSet::on_exit(t).with_system(move |mut commands: Commands, query: Query<Entity, With<UiRoot>>| {
+        info!("Clearing for - {:?}", name);
+        clear_ui(commands, query);
+    })
 }
