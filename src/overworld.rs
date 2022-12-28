@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+use bevy_generative_grammars::tracery::TraceryGrammar;
 use bevy_turborand::RngComponent;
 
 use crate::{
@@ -7,7 +8,6 @@ use crate::{
     card::{AvailableCards, Cards},
     game_state::AppState,
     story::*,
-    tracery_generator::TraceryGenerator,
     ui::*,
 };
 
@@ -24,7 +24,7 @@ impl Plugin for OverworldPlugin {
 fn setup_overworld(
     mut commands: Commands,
     assets: Res<assets::Assets>,
-    stories: Res<Assets<TraceryGenerator>>,
+    stories: Res<Assets<TraceryGrammar>>,
     story: Option<ResMut<Story>>,
     current_scenario: Option<Res<Scenario>>,
     mut available_cards: ResMut<AvailableCards>,

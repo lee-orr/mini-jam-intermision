@@ -11,12 +11,12 @@ mod menu;
 mod overworld;
 mod scene;
 mod story;
-mod tracery_generator;
 mod ui;
 
 use bevy::{core_pipeline::clear_color::ClearColorConfig, prelude::*};
 use bevy_asset_loader::prelude::*;
 use bevy_egui::EguiPlugin;
+use bevy_generative_grammars::tracery::tracery_asset::TraceryAssetPlugin;
 #[cfg(feature = "dev")]
 use bevy_inspector_egui::*;
 use bevy_mod_picking::PickingCameraBundle;
@@ -33,7 +33,6 @@ use smooth_bevy_cameras::{
     controllers::orbit::{OrbitCameraBundle, OrbitCameraController, OrbitCameraPlugin},
     LookTransformPlugin,
 };
-use tracery_generator::TraceryPlugin;
 use ui::UIPlugin;
 
 fn main() {
@@ -54,14 +53,14 @@ fn main() {
     .add_plugin(OrbitCameraPlugin::default())
     .add_plugin(RngPlugin::default())
     .add_plugin(SequentialActionsPlugin)
-    .add_plugins(bevy_mod_picking::DefaultPickingPlugins);
+    .add_plugins(bevy_mod_picking::DefaultPickingPlugins)
+    .add_plugin(TraceryAssetPlugin::new().with_yaml(&["trace.yaml"]));
 
     #[cfg(feature = "dev")]
     app.add_plugin(WorldInspectorPlugin::new());
 
     app.add_plugin(UIPlugin)
         .add_plugin(CardPlugin)
-        .add_plugin(TraceryPlugin)
         .add_plugin(MenuPlugin)
         .add_plugin(OverworldPlugin)
         .add_plugin(ScenePlugin)

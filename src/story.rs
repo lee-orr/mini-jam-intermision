@@ -1,18 +1,16 @@
 use bevy::prelude::Resource;
-use bevy_turborand::RngComponent;
-
-use crate::tracery_generator::TraceryGenerator;
+use bevy_generative_grammars::{
+    generator::StatefulGenerator,
+    tracery::{StatefulStringGenerator, TraceryGrammar},
+};
+use bevy_turborand::{DelegatedRng, RngComponent};
 
 #[derive(Debug, Clone, Resource)]
 pub struct Story {
-    pub main_character: String,
-    pub good_faction: String,
-    pub bad_faction: String,
-    pub evil_lord: String,
     pub phase: StoryPhase,
     pub scenarios: Vec<Scenario>,
     rng: RngComponent,
-    asset: TraceryGenerator,
+    generator: StatefulStringGenerator,
 }
 
 #[derive(Clone, Debug, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -161,25 +159,13 @@ impl Scenario {
 }
 
 impl Story {
-    pub fn generate(rng: &mut RngComponent, asset: &TraceryGenerator) -> Self {
+    pub fn generate(rng: &mut RngComponent, asset: &TraceryGrammar) -> Self {
         Self {
             phase: StoryPhase::Setup,
             scenarios: vec![],
-            main_character: asset.generate_from("main_character", rng),
-            good_faction: asset.generate_from("good_faction", rng),
-            bad_faction: asset.generate_from("bad_faction", rng),
-            evil_lord: asset.generate_from("evil_lord", rng),
             rng: rng.clone(),
-            asset: asset.clone(),
+            generator: StatefulStringGenerator::clone_grammar(asset),
         }
-    }
-
-    fn process_text(&self, text: &str) -> String {
-        let updated = text.replace("*main_character*", &self.main_character);
-        let updated = updated.replace("*good_faction*", &self.good_faction);
-        let updated = updated.replace("*bad_faction*", &self.bad_faction);
-
-        updated.replace("*evil_lord*", &self.evil_lord)
     }
 
     fn generate_scenario(&mut self) -> Option<Scenario> {
@@ -188,10 +174,20 @@ impl Story {
             StoryPhase::Start => "intro",
             StoryPhase::FinalConfrontation => "confrontation",
             StoryPhase::Complete => "complete",
-        };
+        }
+        .to_string();
         bevy::log::info!("Generating Scenario with key {key}");
-        let text = self.asset.generate_from(key, &mut self.rng);
-        let text = self.process_text(&text);
+        let mut rng = |len| {
+            if len == 0 {
+                0
+            } else {
+                self.rng.usize(0..len)
+            }
+        };
+        let text = self
+            .generator
+            .generate_at(&key, &mut rng)
+            .unwrap_or_default();
         bevy::log::info!("Scenario Text {text}");
         Scenario::parse(&text)
     }

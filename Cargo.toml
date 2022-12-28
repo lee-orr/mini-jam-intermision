@@ -14,13 +14,13 @@ bevy_asset_loader = { version = "0.14", features = ["standard_dynamic_assets"]}
 bevy_common_assets = { version = "0.4", features= [ "json", "yaml"]}
 serde = "*"
 serde_json = "*"
-tracery = { version = "0.2", features = ["tracery_json"] }
 bevy_turborand = { version = "*", features = ["rand"] }
 bevy_egui = "*"
 smooth-bevy-cameras = "*"
 bevy-inspector-egui = "*"
 bevy-sequential-actions = "0.6.0"
 bevy_mod_picking = "0.11.0"
+bevy_generative_grammars = { git = "https://github.com/lee-orr/bevy-generative-grammars", features = ["bevy", "yaml"] }
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]
